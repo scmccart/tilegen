@@ -1,0 +1,98 @@
+#!/bin/sh
+# Checks commit messages against commitlint.config.mjs, the repo's
+# Conventional Commits rules (see CLAUDE.md):
+#
+#   scripts/lint-commits                # the commits not on the default branch
+#   scripts/lint-commits BASE           # BASE..HEAD
+#   scripts/lint-commits --edit FILE    # one message (the commit-msg hook)
+#   scripts/lint-commits --title TITLE  # a pull request title
+#
+# The default branch is origin/HEAD's target, else origin/$DEFAULT_BRANCH.
+# With neither (a repo with no remote yet), the no-argument form checks every
+# commit.
+#
+# A pull request title becomes the squash commit's subject with ` (#NN)`
+# appended, so it may be at most 93 characters, leaving room within the
+# 100-character header limit. Merges (`Merge …`) are skipped. commitlint runs
+# through npx, which needs Node 22.12 or later; the first run downloads it.
+# Its version is pinned here and moved by hand.
+set -eu
+
+COMMITLINT_VERSION=21.2.4
+
+DEFAULT_BRANCH=main
+
+TITLE_MAX=93
+
+usage() {
+    echo "usage: scripts/lint-commits [BASE | --edit FILE | --title TITLE]" >&2
+    exit 2
+}
+if ! command -v npx >/dev/null 2>&1; then
+    echo "lint-commits: npx is missing (install Node 22.12 or later)" >&2
+    exit 1
+fi
+commitlint() {
+    npx --yes -p "@commitlint/cli@$COMMITLINT_VERSION" \
+        -p "@commitlint/config-conventional@$COMMITLINT_VERSION" commitlint "$@"
+}
+
+root=$(git rev-parse --show-toplevel)
+base=
+case $# in
+0)
+    upstream=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || echo "origin/$DEFAULT_BRANCH")
+    if git rev-parse --verify --quiet "$upstream^{commit}" >/dev/null; then
+        base=$(git merge-base "$upstream" HEAD)
+    fi
+    ;;
+1)
+    case $1 in -*) usage ;; esac
+    base=$1
+    if ! git rev-parse --verify --quiet "$base^{commit}" >/dev/null; then
+        echo "lint-commits: $base is not a commit" >&2
+        exit 2
+    fi
+    ;;
+2)
+    case $1 in
+    --edit)
+        file=$(realpath "$2")
+        cd "$root"
+        commitlint --edit "$file"
+        exit
+        ;;
+    --title)
+        # Both checks run, so every problem is reported at once.
+        status=0
+        length=$(printf '%s' "$2" | wc -m)
+        if [ "$length" -gt "$TITLE_MAX" ]; then
+            echo "lint-commits: the title is $length characters; the limit is $TITLE_MAX, leaving room for the squash commit's \" (#NN)\"" >&2
+            status=1
+        fi
+        cd "$root"
+        printf '%s\n' "$2" | commitlint || status=1
+        exit "$status"
+        ;;
+    *) usage ;;
+    esac
+    ;;
+*) usage ;;
+esac
+
+cd "$root"
+if ! git rev-parse --verify --quiet HEAD >/dev/null; then
+    echo "lint-commits: no commits yet"
+    exit 0
+fi
+if [ -n "$base" ]; then
+    count=$(git rev-list --count "$base..HEAD")
+    echo "lint-commits: $(git rev-parse --short "$base")..HEAD, $count commits"
+    [ "$count" -gt 0 ] || exit 0
+    commitlint --from "$base" --to HEAD
+else
+    count=$(git rev-list --count HEAD)
+    echo "lint-commits: no default branch to compare with; checking all $count commits"
+    commitlint --to HEAD
+fi
+echo "lint-commits: ok"

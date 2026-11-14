@@ -1,0 +1,60 @@
+schema: spec-driven
+
+context: |
+  Product: tilegen, a personal desktop tool and testbench that procedurally generates game tilesets.
+  A pipeline of techniques is described in a C# definition file, compiled with Roslyn and hot-reloaded;
+  the app previews the result and replays the generation step by step. One user: its author.
+  Phase: phase one is isometric tiles with transitions between at least two terrains, exported as a
+  PNG atlas plus a Tiled tileset that Tiled's terrain brush paints correctly. Out of scope for now:
+  tiles with height, animation, other projections, engine-specific exporters, a visual pipeline editor,
+  other scripting languages, and anything aimed at users other than the author. Nothing is planned
+  past phase one.
+  Platforms: Windows only is supported and tested. Keep Linux cheap (MonoGame DesktopGL, no
+  Windows-only API where a portable one is free), but designs and tasks need not cover it.
+  Stack: C# 15 on .NET 11 (closed hierarchies and unions are relied on), MonoGame 3.8 DesktopGL,
+  Apos.Gui 3, Roslyn for definitions, xUnit v3.
+  Constraints:
+    - Techniques live only in the app. A definition only configures and connects them, and a
+      pipeline description is pure data (no delegates, no types defined by a definition).
+    - Every technique is an iterator that yields a frame per iteration, so generation can be replayed
+      inside a stage.
+    - Generation is deterministic for a description and seed on one .NET version and platform. It
+      runs on the CPU over pixel buffers; randomness comes only from the System.Random the engine
+      passes each stage.
+    - Output is a PNG atlas on a uniform rectangular grid plus a Tiled tileset (.tsj/.tsx), with
+      transitions as Wang sets. Tiled is the reference consumer. Implement the format from its
+      documentation; never copy Tiled's GPL source.
+    - MIT licensed, public repository. Algorithms are implemented from papers and documentation and
+      cited in their topic doc. No third-party art or tilesets, goldens and fixtures included.
+    - The owner approves every golden by eye; a golden is never re-recorded to make a test pass.
+  Testing: unit and integration tests only, no end-to-end or GUI tests. Techniques are proven by
+  goldens (PNG, compared as decoded pixels), the export by parsing what was written, the definition
+  loader by compiling a real definition. The UI and painting in Tiled are manual checks.
+  Architecture: docs/architecture/README.md is normative (layers, dependency rule, numbered rules).
+  Topic design docs in docs/design/ describe how each algorithm works and are kept current.
+  CLAUDE.md has the conventions and their reasons.
+
+rules:
+  proposal:
+    - State explicitly what is out of scope.
+  design:
+    - "Map the change onto the layers: what is pure Core, what is Engine, what is a port, what is an adapter, what is Desktop. Reject designs that put decisions in adapters or Desktop."
+    - Define outcome types as closed hierarchies or unions, and name the invalid states the types rule out.
+    - Include a "Topic docs" section that lists each docs/design/<topic>.md the change creates or updates, with what changes in it, or says "none".
+  tasks:
+    - Order work Core first, then Engine, then adapters and Desktop. Put shared contracts (types, ports) in the first group.
+    - A task group that adds or alters a technique includes its golden and its topic doc update in that same group.
+
+operations:
+  apply:
+    guidance:
+      - Delegate implementation to subagents, choosing each one's model and effort with the route skill. The main session briefs them, checks their work against docs/architecture, and handles escalations.
+      - Run the build and test commands in CLAUDE.md's "Build and test" section before marking any task complete, and mark a task done only when its verification has actually been run.
+      - Follow the layer rules. If a task needs a forbidden reference, stop and raise a design issue instead of adding it.
+      - Update each topic doc in the same task group as the code it describes.
+      - Never re-record a golden to make a test pass. Stop and show the owner the before and after images.
+      - "Commits that only touch OpenSpec artifacts are `docs(openspec): ...`."
+  archive:
+    guidance:
+      - Archive inside the change's PR, before it merges, so main never holds an unarchived change.
+      - Check that each topic doc named in design.md matches the implementation as built.

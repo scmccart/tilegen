@@ -1,0 +1,6 @@
+{
+  "enabledPlugins": {
+    "repo-setup@scmccart-plugins": true,
+    "architecture@scmccart-plugins": true
+  }
+}

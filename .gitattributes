@@ -1,2 +1,27 @@
+# Every text file is LF, in the repository and in the working tree, on every
+# platform. This overrides core.autocrlf, so a Windows checkout does not
+# convert to CRLF. Git decides what is text; the binary list below covers the
+# types it must never touch.
+* text=auto eol=lf
+
+# Shell scripts with no extension: always text. A CRLF shebang line fails.
 scripts/lint-commits text eol=lf
 scripts/hooks/* text eol=lf
+
+# The one exception: cmd.exe misreads batch files that are LF only.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Better hunk headers in diffs.
+*.cs diff=csharp
+
+# Binary: never converted, never diffed as text. Goldens are PNG.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.xnb binary
+*.zip binary

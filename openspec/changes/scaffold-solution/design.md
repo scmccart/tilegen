@@ -65,7 +65,7 @@ tests/Tilegen.ArchitectureTests/
   - Scripting.CSharp and Export → Engine, and get Core transitively. The ports table allows a direct reference to Core, but nothing needs one.
   - Desktop → Scripting.CSharp, Export and Engine.
   - Tilegen.TestKit → Engine, because it will hold fakes of Engine's ports and golden helpers over Core values.
-  - Each `*.Tests` project → its layer and TestKit. ArchitectureTests → all five src projects.
+  - Each `*.Tests` project → its layer and TestKit. ArchitectureTests → all five src projects and TestKit; TestKit is referenced so that running the architecture tests alone restores it, and its assets file is never stale.
 - Markers are `public static class <Layer>Marker` with a doc comment saying they exist so the layer's assembly and its dependency are real, and may be deleted once real types do that job. Engine's marker exposes `typeof(CoreMarker)`; each adapter's exposes `typeof(EngineMarker)`. The required-dependency tests ask whether *any* type in the assembly depends on the inner namespace, so they keep passing after a marker is deleted, as long as real code makes the dependency.
 
 ### Build settings
@@ -138,7 +138,7 @@ tests/Tilegen.ArchitectureTests/
 **Declared references:**
 
 - IL-based checks see only references the code uses (spike finding), so an unused forbidden `PackageReference` or `ProjectReference` passes them. A second test class reads each project's `obj/project.assets.json`, which NuGet writes on restore with `Directory.Build.props` already applied. It asserts:
-  - project references: the exact set listed under "Layout and names", for every src project and TestKit;
+  - project references, for every src project and TestKit: the ones the dependency rule requires are present, and none falls outside what the ports-and-adapters table allows. For example, an adapter must reference Engine and may also reference Core;
   - packages: a subset of an allowlist. Core may have only BannedApiAnalyzers, private. Engine has none. Scripting.CSharp may have `Microsoft.CodeAnalysis.CSharp` and Export none yet, both from the ports-and-adapters table. Desktop may have MonoGame.Framework.DesktopGL and Apos.Gui.
 - The allowlist is the ports-and-adapters table in code. A new package updates both in the same change, and the table says so.
 - The repository root is found by walking up from `AppContext.BaseDirectory` to `tilegen.slnx`.

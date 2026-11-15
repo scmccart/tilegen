@@ -56,14 +56,24 @@ Not adopted: an entity component system (no entity simulation), a process archit
 
 ## Enforcement status
 
-Nothing is enforced by the build yet, because no project exists. The scaffold change must put these in place, and each doc's Enforcement section says which of its rules they cover:
+These checks are in place. Each doc's Enforcement section says which of its rules they cover.
 
-- One project per layer, with project references that follow the dependency rule.
-- `BannedSymbols.txt` in Core (Microsoft.CodeAnalysis.BannedApiAnalyzers), with RS0030 as an error.
-- An architecture test project asserting the forbidden references, and the required ones so a rule can't pass vacuously.
-- `.editorconfig` with CS8509 (non-exhaustive switch) as an error, nullable enabled, and `TreatWarningsAsErrors`.
+- **One project per layer,** with references that follow the dependency rule. The declared-reference test in `tests/Tilegen.ArchitectureTests` checks them from each project's `obj/project.assets.json`, so it sees a reference the code doesn't use yet. It mirrors the table in `ports-and-adapters.md`: every src project and the test kit has the project references the dependency rule requires and none the table doesn't allow, and only the packages the table lists.
+- **Core's banned list:** `src/Tilegen.Core/BannedSymbols.txt` (Microsoft.CodeAnalysis.BannedApiAnalyzers), with RS0030 as an error.
+- **The test banned list:** `tests/BannedSymbols.txt`, applied to every project under `tests/`.
+- **The compiler:** `.editorconfig` makes CS8509 (a switch expression that misses a case) an error and silences CS8524. Nullable is enabled, and warnings are errors.
+- **The architecture tests:** `tests/Tilegen.ArchitectureTests`, on NetArchTest.Rules 1.3.2. They check each layer's forbidden namespaces and its required ones (`testing R17`), and that every type sits under its assembly's root namespace, so a rule that matches by namespace can't pass on nothing.
 
-If an analyzer or the architecture-test library lags behind .NET 11, use a reflection check over `Assembly.GetReferencedAssemblies()` and say so here. Never leave a check disabled without recording it.
+NetArchTest was chosen over two alternatives. ArchUnitNET 0.13.5 passed vacuously on a `System.IO` dependency unless CoreLib was loaded into its architecture too. A reflection check over `Assembly.GetReferencedAssemblies()` sees assembly names only, such as `System.Runtime`, so it can't express a namespace rule. NetArchTest has been unmaintained since 2021; if it stops reading a new runtime's assemblies, its maintained fork NetArchTest.eNhancedEdition, with the same API, is the fallback.
+
+Not enforced:
+
+- **Switch statements.** CS8509 covers switch expressions only, and IDE0010 also flags complete switches. Review covers them.
+- **A banned type used only in a signature,** such as a `CancellationToken` parameter or a `Task` return. RS0030 doesn't see it; review does.
+- **The golden comparer,** deferred to the first technique change (owner decision, 2026-11-14).
+- **Checks with nothing to check yet:** the determinism and inputs-unchanged tests wait for the first technique; the required Roslyn and PNG dependencies, and Engine's imaging-namespace rule, wait for those packages.
+
+Never leave a check disabled without recording it.
 
 ## Exceptions in force
 

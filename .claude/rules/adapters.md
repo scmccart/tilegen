@@ -17,4 +17,4 @@ You are editing an adapter: `Tilegen.Scripting.CSharp` (Roslyn, file watching) o
 
 An adapter references Engine, Core and its own technology. A new package means updating the table in `docs/architecture/ports-and-adapters.md` in the same change.
 
-Enforced by: nothing yet. The scaffold change adds the project-reference rule and the architecture tests (`docs/architecture/README.md`, "Enforcement status").
+Enforced by: the architecture tests and the declared-reference test (`tests/Tilegen.ArchitectureTests`). Each adapter must depend on Engine and on neither the other adapter, Desktop, MonoGame nor Apos (Export not on Roslyn either), must reference Engine and may reference Core besides, and may declare only the packages in the `ports-and-adapters.md` table.

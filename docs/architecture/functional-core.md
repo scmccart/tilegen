@@ -85,13 +85,13 @@ foreach (var frame in Erode.Run(parameters, input, random))
 
 ## Enforcement
 
-- **Project references:** `Tilegen.Core` has no project references and no runtime package references. Analyzer-only packages, such as the banned-API analyzer below, are allowed. Covers R7 and R14. In place as the project's declared references; a test over them is planned (scaffold change).
+- **Project references:** `Tilegen.Core` has no project references and no runtime package references. Analyzer-only packages, such as the banned-API analyzer below, are allowed. Covers R7 and R14. Checked by the declared-reference test in `tests/Tilegen.ArchitectureTests`, which allows Core no project reference and only the banned-API analyzer as a private package.
 - **`src/Tilegen.Core/BannedSymbols.txt`,** with RS0030 as an error in `.editorconfig`. In place. Covers R1, R3 and R10: both `System.Random` constructors and `Random.Shared`, `DateTime.Now`/`UtcNow`, `DateTimeOffset.Now`/`UtcNow`, `Environment.TickCount`/`TickCount64`, `System.Diagnostics.Stopwatch`, `System.IO.File`, `System.IO.Directory`, `System.Threading.Tasks.Task`, `System.Threading.CancellationToken`. Each entry's message names its rule.
   - RS0030 does not see a banned type that appears only in a signature, such as a `CancellationToken` parameter or a `Task` return. Using a member or constructor is caught; the signature alone is not. That part of R1 and R10 stays with review.
   - A misspelt entry bans nothing and gives no diagnostic. Whoever edits the list checks that each entry produces an RS0030 error.
 - **Core's implicit usings:** the `System.IO` and `System.Threading.Tasks` global usings are removed from Core, so `File`, `Directory` and `Task` are not in scope by default. A convenience, not a check.
-- **Architecture tests:** planned (scaffold change). Core depends on no other tilegen assembly, and on no `Microsoft.Xna.Framework`, `Apos`, `Microsoft.CodeAnalysis` or `System.IO` namespace. Covers R6 and R7.
-- **Tests:** a determinism property (two runs, same seed, same pixels) and an inputs-unchanged check per technique cover R4 and R8 in part (`testing.md`).
+- **Architecture tests** in `tests/Tilegen.ArchitectureTests` (NetArchTest.Rules): Core depends on no `Tilegen.Engine`, `Tilegen.Scripting`, `Tilegen.Export` or `Tilegen.Desktop` namespace, and on no `Microsoft.Xna.Framework`, `MonoGame`, `Apos`, `Microsoft.CodeAnalysis` or `System.IO` namespace. Covers R6 and R7.
+- **Tests:** a determinism property (two runs, same seed, same pixels) and an inputs-unchanged check per technique will cover R4 and R8 in part (`testing.md`). There is nothing to check yet, because there are no techniques; they arrive with the first technique.
 - **Review alone:** R2, R5, R9, R11, R12, the stepwise parts of R4, and `CancellationToken` or `Task` in a signature (R1, R10).
 
 ## PR checklist

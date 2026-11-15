@@ -7,6 +7,7 @@
     <Project Path="src/Tilegen.Scripting.CSharp/Tilegen.Scripting.CSharp.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Tilegen.ArchitectureTests/Tilegen.ArchitectureTests.csproj" />
     <Project Path="tests/Tilegen.Core.Tests/Tilegen.Core.Tests.csproj" />
     <Project Path="tests/Tilegen.Engine.Tests/Tilegen.Engine.Tests.csproj" />
     <Project Path="tests/Tilegen.Export.Tests/Tilegen.Export.Tests.csproj" />

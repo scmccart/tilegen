@@ -17,4 +17,4 @@ You are editing `Tilegen.Engine`. Read `docs/architecture/functional-core.md`, `
 
 Engine references Core only. If the code needs Roslyn, MonoGame, Apos.Gui or an imaging package, it belongs in an adapter or in Desktop, behind a port.
 
-Enforced by: nothing yet. The scaffold change adds the project-reference rule and the architecture tests (`docs/architecture/README.md`, "Enforcement status").
+Enforced by: the architecture tests and the declared-reference test (`tests/Tilegen.ArchitectureTests`). Engine must depend on Core and on no adapter, Desktop, MonoGame, Apos or Roslyn namespace, may reference only Core, and may declare no package.

@@ -46,9 +46,9 @@ Each bite check is a scratch edit, a run whose output shows the expected failure
 
 ## 6. Architecture tests
 
-- [ ] 6.1 Create `tests/Tilegen.ArchitectureTests` (xunit.v3, NetArchTest.Rules 1.3.2, references all five src projects) with the forbidden-dependency, required-dependency and anti-vacuity tests from design.md "Architecture tests". Verify `dotnet test --project tests/Tilegen.ArchitectureTests` passes.
-- [ ] 6.2 Add the declared-references tests over each project's `obj/project.assets.json`: exact project references for src projects and TestKit, and a package allowlist matching the `ports-and-adapters.md` table. Verify they pass, and that each assertion names the project and the offending reference in its failure message.
-- [ ] 6.3 Bite check, one at a time, reverting each:
+- [x] 6.1 Create `tests/Tilegen.ArchitectureTests` (xunit.v3, NetArchTest.Rules 1.3.2, references all five src projects) with the forbidden-dependency, required-dependency and anti-vacuity tests from design.md "Architecture tests". Verify `dotnet test --project tests/Tilegen.ArchitectureTests` passes.
+- [x] 6.2 Add the declared-references tests over each project's `obj/project.assets.json`: exact project references for src projects and TestKit, and a package allowlist matching the `ports-and-adapters.md` table. Verify they pass, and that each assertion names the project and the offending reference in its failure message.
+- [x] 6.3 Bite check, one at a time, reverting each:
   - Core uses `System.IO.Path`.
   - Scripting.CSharp references Export and uses its marker.
   - Engine's marker stops using Core.
@@ -57,7 +57,7 @@ Each bite check is a scratch edit, a run whose output shows the expected failure
   - Engine gains an unused reference to Apos.Gui.
 
   Each fails the named test. Verify `dotnet test` passes after the last revert.
-- [ ] 6.4 Update the docs:
+- [x] 6.4 Update the docs:
   - Enforcement in `functional-core.md` (architecture tests, project references), `ports-and-adapters.md` (architecture tests and declared references; the table is mirrored by the allowlist, so a new package updates both) and `illegal-states.md` (R14 is structural).
   - `docs/architecture/README.md` "Enforcement status": what is in place, the NetArchTest choice and why not ArchUnitNET or reflection, and what is deferred or not possible.
   - "Enforced by" in `.claude/rules/core.md`, `engine.md`, `adapters.md` and `desktop.md`.

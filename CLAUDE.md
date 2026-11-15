@@ -54,7 +54,7 @@ The rules agents break most:
 - No interface exists for logic. Ports are for platform things only: compiling definitions, writing files.
 - Expected failures are closed outcome types, switched over with no discard arm. Exceptions are for bugs.
 
-Core, Engine, Scripting.CSharp and Export exist under `src/` (Desktop is still to come), and all the names are final. Their references follow the dependency rule, and checks that enforce it are being put in place; each architecture doc's Enforcement section and `docs/architecture/README.md` say which are in place.
+All five projects exist under `src/`, and the names are final. The build and the architecture tests (`tests/Tilegen.ArchitectureTests`) enforce the dependency rule; see `docs/architecture/README.md`, "Enforcement status".
 
 ## How work happens
 

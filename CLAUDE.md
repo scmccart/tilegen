@@ -6,7 +6,7 @@ tilegen is a personal desktop tool and testbench for procedurally generating gam
 
 ## Build and test
 
-The solution is `tilegen.slnx`. Build everything from the repo root with `dotnet build`; warnings are errors, so a clean build has none. Run the app with `dotnet run --project src/Tilegen.Desktop`; it opens the window, so it takes focus.
+The solution is `tilegen.slnx`. Build everything from the repo root with `dotnet build`; warnings are errors, so a clean build has none. Run the app with `dotnet run --project src/Tilegen.Desktop`; it opens the window, so it takes focus. CI (`.github/workflows/build.yml`) runs exactly the build and test commands below on Windows.
 
 - **Test:** `dotnet test -- --minimum-expected-tests 1` runs every test project and fails any project that runs no tests. Plain `dotnet test` reports a project that ran nothing as "Zero tests ran" but still exits 0. Keep the `--`: without it the option is silently ignored. `dotnet test --project tests/<Project>` runs one, for example `dotnet test --project tests/Tilegen.Core.Tests`. To leave out integration tests, run `dotnet test --filter-not-trait "Category=Integration"` (`testing R16`).
 - **Tests run on Microsoft.Testing.Platform,** set in `global.json`. `dotnet test` therefore takes `--project` or `--solution` rather than a positional path, and xUnit's filter options (`--filter-trait`, `--filter-not-trait`, `--filter-class` and others) go straight on the command line.
@@ -14,7 +14,7 @@ The solution is `tilegen.slnx`. Build everything from the repo root with `dotnet
 - **The target is .NET 11, not .NET 10.** The architecture relies on C# 15 `closed` hierarchies and `union` types, so the compiler reports every switch that misses a case. Don't lower the target to make a package or tool happy; raise it as a design issue.
 - **Package versions are pinned in `Directory.Packages.props`** (central package management; project files carry no versions). MonoGame 3.8.6 and Apos.Gui 3.1 were current when the stack was chosen (November 2026).
 - **Apos.Gui needs the HiDef graphics profile,** because its Apos.Shapes dependency does. Its shaders ship precompiled inside the assembly, so there is no shader build step.
-- **Every text file is LF, on every platform** (`.gitattributes`; batch files are the one CRLF exception). The scaffold's `.editorconfig` must set `end_of_line = lf` so editors and `dotnet format` agree with it.
+- **Every text file is LF, on every platform** (`.gitattributes`; batch files are the one CRLF exception). `.editorconfig` sets `end_of_line = lf` so editors and `dotnet format` agree with `.gitattributes`.
 - `scripts/lint-commits` checks commit messages; see Commit messages below.
 
 ## Conventions

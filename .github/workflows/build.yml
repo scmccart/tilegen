@@ -1,0 +1,34 @@
+# Builds the solution and runs every test project on Windows, the only
+# supported platform. The run fails if any test project runs no tests: the
+# `--` before --minimum-expected-tests matters, because without it
+# Microsoft.Testing.Platform ignores the option and plain `dotnet test` exits 0
+# when a project runs zero tests.
+
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - name: Build
+        run: dotnet build
+      - name: Test
+        run: dotnet test --no-build -- --minimum-expected-tests 1

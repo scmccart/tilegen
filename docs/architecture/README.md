@@ -63,6 +63,7 @@ These checks are in place. Each doc's Enforcement section says which of its rule
 - **The test banned list:** `tests/BannedSymbols.txt`, applied to every project under `tests/`.
 - **The compiler:** `.editorconfig` makes CS8509 (a switch expression that misses a case) an error and silences CS8524. Nullable is enabled, and warnings are errors.
 - **The architecture tests:** `tests/Tilegen.ArchitectureTests`, on NetArchTest.Rules 1.3.2. They check each layer's forbidden namespaces and its required ones (`testing R17`), and that every type sits under its assembly's root namespace, so a rule that matches by namespace can't pass on nothing.
+- **CI:** `.github/workflows/build.yml` runs the build and every test project on Windows, so each check above runs on every push and pull request.
 
 NetArchTest was chosen over two alternatives. ArchUnitNET 0.13.5 passed vacuously on a `System.IO` dependency unless CoreLib was loaded into its architecture too. A reflection check over `Assembly.GetReferencedAssemblies()` sees assembly names only, such as `System.Runtime`, so it can't express a namespace rule. NetArchTest has been unmaintained since 2021; if it stops reading a new runtime's assemblies, its maintained fork NetArchTest.eNhancedEdition, with the same API, is the fallback.
 

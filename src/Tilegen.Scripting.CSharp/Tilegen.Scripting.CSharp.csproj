@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tilegen.Engine\Tilegen.Engine.csproj" />
+  </ItemGroup>
+
+</Project>

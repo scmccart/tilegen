@@ -42,10 +42,12 @@ public interface ITilesetWriter
 | `Tilegen.Engine` | Declares ports; steps techniques; timeline; reload | Core |
 | `Tilegen.Scripting.CSharp` | Adapter: compile definitions with Roslyn, load them, watch files | Engine, Core, `Microsoft.CodeAnalysis.CSharp` |
 | `Tilegen.Export` | Adapter: PNG encoding, the Tiled `.tsj`/`.tsx` codec, file writing | Engine, Core, one PNG encoding package |
-| `Tilegen.Desktop` | Composition root; drawing; input; UI | Everything above, MonoGame, Apos.Gui |
+| `Tilegen.Desktop` | Composition root; drawing; input; UI | Everything above, `MonoGame.Framework.DesktopGL`, `Apos.Gui` |
 | A definition | Returns a pipeline description | Core and the base library only |
 
-Every package an inner layer may reference is listed in this table. Adding one is an architecture change: update the table in the same change.
+`Apos.Gui` brings Apos.Shapes, Apos.Input, Apos.Tweens and MonoGame.Extended transitively; they stay in Desktop with it.
+
+Every package an inner layer may reference is listed in this table. Adding one is an architecture change: update the table in the same change. The allowlist in `tests/Tilegen.ArchitectureTests` (`DeclaredReferenceTests`) mirrors this table, so a new package updates both. The test kit (`tests/Tilegen.TestKit`) is not a layer and isn't in the table: the allowlist gives it Engine, and allows the banned-API analyzer as a private package in Core and under `tests/`.
 
 ## Rules
 
@@ -75,11 +77,14 @@ Every package an inner layer may reference is listed in this table. Adding one i
 
 ## Enforcement
 
-Planned; the scaffold change puts these in place.
-
-- **Project references** follow the table above. Covers R1.
-- **Architecture tests,** negative and positive: Engine references no `Microsoft.Xna.Framework`, `Apos`, `Microsoft.CodeAnalysis` or imaging namespace; only Desktop references MonoGame and Apos; only Scripting.CSharp references Roslyn; Engine does reference Core; each adapter does reference Engine. Covers R1, R2 and R11 in part.
-- **Review alone:** R3, R4, R5, R7, R9, R10, R12, R13.
+- **Project references** follow the table above, and the declared-reference test in `tests/Tilegen.ArchitectureTests` checks them. It reads each project's `obj/project.assets.json`, so it sees a reference the code doesn't use yet. It mirrors the table: each src project and the test kit declares the project references the dependency rule requires, such as an adapter's to Engine, and none outside what its row allows. Its packages are a subset of the row's packages. A new package updates both. Covers R1.
+- **Architecture tests** in the same project (NetArchTest.Rules), negative and positive. Covers R1, R2 and R11 in part.
+  - Negative: Engine depends on no adapter, Desktop, `Microsoft.Xna.Framework`, `MonoGame`, `Apos` or `Microsoft.CodeAnalysis` namespace. Neither adapter depends on the other, on Desktop, or on `Microsoft.Xna.Framework`, `MonoGame` or `Apos`, and Export and Desktop don't depend on `Microsoft.CodeAnalysis` either. With Core's rows, only Desktop uses MonoGame and Apos.
+  - Positive: Engine depends on Core; each adapter depends on Engine; Desktop depends on Engine, both adapters, `Microsoft.Xna.Framework` and `Apos`.
+  - Engine's imaging-namespace rule has nothing to name until Export picks a PNG package. Until then the declared-reference test keeps every package out of Engine.
+  - "Only Scripting.CSharp references Roslyn": Core, Engine, Export and Desktop are forbidden `Microsoft.CodeAnalysis`. The positive half waits for the Roslyn package, which Scripting.CSharp doesn't reference yet.
+  - Export's PNG package: the allowlist names it when Export picks one, in the same change as the table.
+- **Review alone:** R3 to R10, R12, R13.
 
 ## PR checklist
 

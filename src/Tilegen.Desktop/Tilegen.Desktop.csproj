@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tilegen.Engine\Tilegen.Engine.csproj" />
+    <ProjectReference Include="..\Tilegen.Scripting.CSharp\Tilegen.Scripting.CSharp.csproj" />
+    <ProjectReference Include="..\Tilegen.Export\Tilegen.Export.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MonoGame.Framework.DesktopGL" />
+    <PackageReference Include="Apos.Gui" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Fonts\FiraSans-Regular.ttf" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fonts\OFL.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

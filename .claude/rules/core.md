@@ -17,4 +17,4 @@ You are editing `Tilegen.Core`. Read `docs/architecture/functional-core.md`, `do
 
 Core references the .NET base library only. If the code needs MonoGame, Roslyn, a file or an imaging package, it belongs in an adapter or in Desktop, and Core should return data for it to act on.
 
-Enforced by: nothing yet. The scaffold change adds `BannedSymbols.txt`, the project-reference rule and the architecture tests (`docs/architecture/README.md`, "Enforcement status").
+Enforced by: the compiler settings (CS8509 as an error for switch expressions, nullable enabled, warnings as errors); `src/Tilegen.Core/BannedSymbols.txt` with RS0030 as an error (`.editorconfig`), which bans `Random` constructors and `Random.Shared`, the clock, `File`, `Directory`, `Task` and `CancellationToken`. RS0030 does not see a banned type that appears only in a signature, so a `CancellationToken` parameter or a `Task` return is a review finding. The architecture tests forbid any dependency on another tilegen layer, MonoGame, Apos, Roslyn or `System.IO`, and the declared-reference test allows no project reference and only the banned-API analyzer as a package (`tests/Tilegen.ArchitectureTests`).

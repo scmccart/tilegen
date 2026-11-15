@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Tilegen.Core/Tilegen.Core.csproj" />
+    <Project Path="src/Tilegen.Desktop/Tilegen.Desktop.csproj" />
+    <Project Path="src/Tilegen.Engine/Tilegen.Engine.csproj" />
+    <Project Path="src/Tilegen.Export/Tilegen.Export.csproj" />
+    <Project Path="src/Tilegen.Scripting.CSharp/Tilegen.Scripting.CSharp.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Tilegen.ArchitectureTests/Tilegen.ArchitectureTests.csproj" />
+    <Project Path="tests/Tilegen.Core.Tests/Tilegen.Core.Tests.csproj" />
+    <Project Path="tests/Tilegen.Engine.Tests/Tilegen.Engine.Tests.csproj" />
+    <Project Path="tests/Tilegen.Export.Tests/Tilegen.Export.Tests.csproj" />
+    <Project Path="tests/Tilegen.Scripting.CSharp.Tests/Tilegen.Scripting.CSharp.Tests.csproj" />
+    <Project Path="tests/Tilegen.TestKit/Tilegen.TestKit.csproj" />
+  </Folder>
+</Solution>

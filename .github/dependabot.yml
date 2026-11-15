@@ -1,12 +1,20 @@
-# Version updates for the workflows' actions. commitlint isn't covered: it
-# runs through npx with its version pinned in scripts/lint-commits and moved
-# by hand (see CLAUDE.md).
+# Version updates for the workflows' actions and the NuGet packages. Package
+# versions live in Directory.Packages.props (central package management). The
+# SDK version in global.json is moved by hand, and so is commitlint: it runs
+# through npx with its version pinned in scripts/lint-commits (see CLAUDE.md).
 #
 # The subjects read `chore(deps): bump …` (Dependabot adds the scope and the
 # colon), which CI's commit check accepts.
 version: 2
 updates:
   - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: chore
+      include: scope
+  - package-ecosystem: nuget
     directory: /
     schedule:
       interval: monthly

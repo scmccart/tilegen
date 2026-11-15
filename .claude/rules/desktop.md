@@ -16,4 +16,4 @@ You are editing `Tilegen.Desktop`. Read `docs/architecture/ports-and-adapters.md
 
 Apos.Gui needs the HiDef graphics profile. Use MonoGame's DesktopGL flavour, and avoid a Windows-only API where a portable one is free.
 
-Enforced by: nothing yet. The scaffold change adds the architecture tests (`docs/architecture/README.md`, "Enforcement status").
+Enforced by: the compiler settings (CS8509 as an error for switch expressions, nullable enabled, warnings as errors); the architecture tests and the declared-reference test (`tests/Tilegen.ArchitectureTests`). Desktop must depend on Engine, both adapters, MonoGame and Apos, and may declare only MonoGame.Framework.DesktopGL and Apos.Gui; that it only presents and gathers input stays with review.

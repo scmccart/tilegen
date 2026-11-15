@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="NetArchTest.Rules" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Tilegen.Core\Tilegen.Core.csproj" />
+    <ProjectReference Include="..\..\src\Tilegen.Engine\Tilegen.Engine.csproj" />
+    <ProjectReference Include="..\..\src\Tilegen.Scripting.CSharp\Tilegen.Scripting.CSharp.csproj" />
+    <ProjectReference Include="..\..\src\Tilegen.Export\Tilegen.Export.csproj" />
+    <ProjectReference Include="..\..\src\Tilegen.Desktop\Tilegen.Desktop.csproj" />
+    <!-- Not under test in IL: referenced so running this project alone restores TestKit too, and
+         DeclaredReferenceTests never reads a stale assets file for it. -->
+    <ProjectReference Include="..\Tilegen.TestKit\Tilegen.TestKit.csproj" />
+  </ItemGroup>
+
+</Project>

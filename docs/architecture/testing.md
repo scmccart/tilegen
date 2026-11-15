@@ -25,8 +25,9 @@ There are no end-to-end or GUI tests and no performance suite. That is the owner
 ## How it applies here
 
 - **Framework:** xUnit v3.
-- **Planned tools,** pinned in the scaffold change: CsCheck for property tests; NetArchTest or ArchUnitNET for architecture tests.
-- **A shared test kit** owns the fakes, golden loading and exact pixel comparison, so no test project writes its own.
+- **Architecture tests** use NetArchTest.Rules.
+- **Property tests** will use CsCheck. The first change that writes a property test adds it to `Directory.Packages.props`.
+- **A shared test kit** owns the fakes, golden loading and exact pixel comparison, so no test project writes its own. It exists as `tests/Tilegen.TestKit` and is empty until the first fake or golden helper.
 
 ## Rules
 
@@ -45,7 +46,7 @@ There are no end-to-end or GUI tests and no performance suite. That is the owner
 - **R13.** Fix every flake at its cause. No whole-test retries, no skips, no longer waits on passing runs.
 - **R14.** Prefer hand-written fakes to mocks. Use a mock only when the test is about a specific interaction.
 - **R15.** Assert an expected failure as its outcome case. Never assert a throw for one (`railway R1`).
-- **R16.** Integration tests SHOULD carry a trait so a fast run can leave them out.
+- **R16.** Integration tests SHOULD carry the trait `Category=Integration`, so a fast run can leave them out with `dotnet test --filter-not-trait "Category=Integration"`.
 - **R17.** Architecture tests MUST assert the required references as well as the forbidden ones, so a rule can't pass because a type was renamed away.
 - **R18.** Name tests by behaviour, such as `Erode_leaves_its_input_unchanged`, and shape them as arrange, act, assert.
 
@@ -61,12 +62,10 @@ There are no end-to-end or GUI tests and no performance suite. That is the owner
 
 ## Enforcement
 
-Planned; the scaffold change puts these in place.
-
-- **CI** runs every test project on each push.
-- **The test kit's golden comparer** decodes before comparing, and fails with both images written out for inspection. Covers R4 and supports R6.
-- **A banned-API list for test projects:** `Thread.Sleep`, `Task.Delay`, `DateTime.Now`. Covers R12 in part.
-- **Review alone:** R1, R2, R5 to R11, R13 to R18. R6 depends on the owner: nothing mechanical stops a re-record.
+- **A banned-API list for test projects** is in place: `tests/BannedSymbols.txt`, applied to every project under `tests/`, with RS0030 as an error. It bans `Thread.Sleep`, every overload of `Task.Delay`, and `DateTime.Now` and `UtcNow`. Covers R12 in part: a shared static or network call is still a review finding.
+- **The test kit's golden comparer** is not built yet. It arrives with the first technique change, because it needs a PNG decoder and a pixel type that nothing has yet (owner decision, 2026-11-14). It will decode before comparing, and fail with both images written out for inspection. Covers R4 and supports R6.
+- **CI** (`.github/workflows/build.yml`) builds and runs every test project on Windows on each push to main and each pull request, and fails a test project that runs no tests.
+- **Review alone:** R1 to R3, R5 to R11, R13 to R16 and R18, and R17 in part. The architecture tests assert the required references, and review checks that each new rule does too. R6 depends on the owner: nothing mechanical stops a re-record.
 
 ## PR checklist
 

@@ -1,0 +1,24 @@
+root = true
+
+[*]
+end_of_line = lf
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+[*.{xml,csproj,props,targets,slnx,json,yml,yaml}]
+indent_size = 2
+
+[*.cs]
+indent_size = 4
+
+# A switch expression that misses a case of a closed type, a union or a named enum member.
+dotnet_diagnostic.CS8509.severity = error
+# A banned API (BannedSymbols.txt).
+dotnet_diagnostic.RS0030.severity = error
+# CS8524 asks a switch expression over an enum to also handle values that are not named
+# members. With it on, a switch that handles every named member still fails, and only a
+# discard arm fixes it, which illegal-states R5 forbids. With it off, a missing named member
+# still fails with CS8509. Owner decision, 2026-11-14.
+dotnet_diagnostic.CS8524.severity = none

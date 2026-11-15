@@ -67,11 +67,11 @@ string Describe(DefinitionOutcome outcome) => outcome switch
 
 ## Enforcement
 
-Planned; the scaffold change puts these in place.
-
-- **The compiler:** CS8509 as an error with `TreatWarningsAsErrors`, so a non-exhaustive switch over a `closed` type or `union` fails the build. Covers R2.
-- **Tests:** each case of an outcome type is produced by at least one test (`testing.md`).
-- **Review alone:** R1, R3 to R13. A discard arm over an outcome type is always a finding.
+- **The compiler:** CS8509 is an error in `.editorconfig`, whatever `TreatWarningsAsErrors` says. A switch *expression* over a `closed` type, a `union` or an enum that misses a case fails the build. Covers R2 for switch expressions.
+  - Switch *statements* are not checked by the compiler. IDE0010 also flags complete switch statements and wants a `default`, so it is not used. A switch statement over an outcome stays with review, so write a switch expression where you can.
+  - CS8524 is silenced, because with it on a switch expression that handles every named enum member still fails and only a discard arm fixes it (`illegal-states R5`). A missing named member still fails with CS8509.
+- **Tests:** each case of an outcome type is produced by at least one test (`testing.md`). There are no outcome types yet, so nothing checks this; review checks it when the first arrives.
+- **Review alone:** R1, R3 to R13, and R2 for switch statements. A discard arm over an outcome type is always a finding.
 
 ## PR checklist
 

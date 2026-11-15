@@ -17,4 +17,4 @@ You are editing tests. Read `docs/architecture/testing.md` before adding a test 
 
 There are no end-to-end or GUI tests. Don't add a harness that drives the window.
 
-Enforced by: nothing yet. The scaffold change adds CI and the test kit's golden comparer (`docs/architecture/README.md`, "Enforcement status").
+Enforced by: the banned-API list for tests, `tests/BannedSymbols.txt`, with RS0030 as an error (`testing R12` in part). The golden comparer is not built yet and arrives with the first technique change. CI does not exist yet; the scaffold change adds it (`docs/architecture/README.md`, "Enforcement status").

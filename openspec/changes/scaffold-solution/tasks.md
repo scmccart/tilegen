@@ -34,10 +34,10 @@ Each bite check is a scratch edit, a run whose output shows the expected failure
 
 ## 5. Test projects and the test banned list
 
-- [ ] 5.1 Create `tests/Directory.Build.props` (imports the root props; adds BannedApiAnalyzers and `tests/BannedSymbols.txt` with `Thread.Sleep`, `Task.Delay`, and `DateTime.Now` and `UtcNow`) and `tests/Tilegen.TestKit` (class library, references Engine, no types). Add `tests/Tilegen.Core.Tests`, `Tilegen.Engine.Tests`, `Tilegen.Scripting.CSharp.Tests` and `Tilegen.Export.Tests`, each Exe on xunit.v3 4.0.3, referencing its layer and TestKit, and each with one placeholder test as described in design.md "Test projects and MTP". Add all of them to `tilegen.slnx`. Verify that `dotnet build` is clean and `dotnet test` passes with 4 tests.
-- [ ] 5.2 Verify the test commands: run `dotnet test --project tests/Tilegen.Core.Tests` and an xUnit trait filter that leaves out integration tests (check xUnit's MTP option names first). Record the exact commands that ran.
-- [ ] 5.3 Bite check: a test using every entry in the test banned list shows one RS0030 per entry. Also show that emptying a test project makes `dotnet test` fail with exit code 8. Revert, and verify `dotnet test` passes.
-- [ ] 5.4 Update the docs:
+- [x] 5.1 Create `tests/Directory.Build.props` (imports the root props; adds BannedApiAnalyzers and `tests/BannedSymbols.txt` with `Thread.Sleep`, `Task.Delay`, and `DateTime.Now` and `UtcNow`) and `tests/Tilegen.TestKit` (class library, references Engine, no types). Add `tests/Tilegen.Core.Tests`, `Tilegen.Engine.Tests`, `Tilegen.Scripting.CSharp.Tests` and `Tilegen.Export.Tests`, each Exe on xunit.v3 4.0.3, referencing its layer and TestKit, and each with one placeholder test as described in design.md "Test projects and MTP". Add all of them to `tilegen.slnx`. Verify that `dotnet build` is clean and `dotnet test` passes with 4 tests.
+- [x] 5.2 Verify the test commands: run `dotnet test --project tests/Tilegen.Core.Tests` and an xUnit trait filter that leaves out integration tests (check xUnit's MTP option names first). Record the exact commands that ran.
+- [x] 5.3 Bite check: a test using every entry in the test banned list shows one RS0030 per entry. Also show that emptying a test project makes `dotnet test` fail with exit code 8. Revert, and verify `dotnet test` passes.
+- [x] 5.4 Update the docs:
   - `CLAUDE.md` "Build and test": the commands from 5.1 and 5.2, as run.
   - `testing.md`: in "How it applies here", NetArchTest is pinned, CsCheck is still to be pinned by the first change that writes a property test, and the test kit exists but is empty. In Enforcement, the test banned list is in place, and the golden comparer is deferred to the first technique change (owner decision, 2026-11-14).
   - `.claude/rules/tests.md` "Enforced by".

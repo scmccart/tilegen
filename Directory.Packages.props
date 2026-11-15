@@ -8,6 +8,7 @@
     <PackageVersion Include="Apos.Gui" Version="3.1.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0" />
     <PackageVersion Include="MonoGame.Framework.DesktopGL" Version="3.8.6.1" />
+    <PackageVersion Include="xunit.v3" Version="4.0.3" />
   </ItemGroup>
 
 </Project>

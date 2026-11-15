@@ -41,36 +41,36 @@ Unless a task says otherwise, every task is verified by:
 
 ## 3. Generation runs and the timeline (Engine)
 
-- [ ] 3.1 Add the closed `RunState` (`Running`, `Completed`, `Stopped`; design D2), `TimelineEntry(StageId Stage, int Step, Frame Frame)` and `Timeline`. `Timeline` is read-only to callers, with an internal append (design D3). Verify that the types compile, and that `Timeline`'s public surface has no way to add, remove or replace an entry.
-- [ ] 3.2 Implement `GenerationRun.Start`, `Advance` and `Stop` (design D2):
+- [x] 3.1 Add the closed `RunState` (`Running`, `Completed`, `Stopped`; design D2), `TimelineEntry(StageId Stage, int Step, Frame Frame)` and `Timeline`. `Timeline` is read-only to callers, with an internal append (design D3). Verify that the types compile, and that `Timeline`'s public surface has no way to add, remove or replace an entry.
+- [x] 3.2 Implement `GenerationRun.Start`, `Advance` and `Stop` (design D2):
   - one `Random` per stage, built from `StageSeed.Derive(seed, stage.Id)` when the stage starts;
   - one frame per advance, copied with `ToBuffer()` and wrapped in a new `Frame`;
   - completing on the advance that finds no frame left;
   - disposing the enumerator on stop and on completion.
 
   Verify with one Engine test per scenario in `specs/generation-run/spec.md`, comparing pixels with `Pixels.Snapshots` and `Pixels.Difference` against `Generation.Run` called directly. Tests build pipelines through `Pipeline.Validate`, because `ValidatedPipeline`'s constructor is internal. Don't widen `InternalsVisibleTo`. Each `RunState` case is produced by at least one test.
-- [ ] 3.3 Delete `EngineMarker`:
+- [x] 3.3 Delete `EngineMarker`:
   - point `tests/Tilegen.ArchitectureTests/Layers.cs`, `ScriptingMarker.Inner`, `ExportMarker.Inner` and `SmokeGame`'s label at `GenerationRun` (`SmokeGame` survives until 5.1);
   - delete `tests/Tilegen.Engine.Tests/PlaceholderTests.cs`.
 
   Verify that the architecture tests pass, anti-vacuity checks included, and that `grep -rn EngineMarker src tests` is empty.
-- [ ] 3.4 Fill in the run and timeline sections of `docs/design/timeline-and-playback.md`:
+- [x] 3.4 Fill in the run and timeline sections of `docs/design/timeline-and-playback.md`:
   - stage order, per-stage randomness, one frame per advance, and completing and stopping;
   - what is kept and its memory cost, and read-only entries;
   - the limits: the UI thread, an unbounded timeline, one step per update.
 
   Verify by reading it against 3.2 as built.
-- [ ] 3.5 Update the Enforcement section of `docs/architecture/railway.md`: `RunState` is the second outcome type, and each of its cases is produced by an Engine test. Check the Enforcement sections of `testing.md` and `illegal-states.md`, and the README's "Enforcement status", for text this change makes stale, and fix it. Verify by reading each against the code.
+- [x] 3.5 Update the Enforcement section of `docs/architecture/railway.md`: `RunState` is the second outcome type, and each of its cases is produced by an Engine test. Check the Enforcement sections of `testing.md` and `illegal-states.md`, and the README's "Enforcement status", for text this change makes stale, and fix it. Verify by reading each against the code.
 
 ## 4. The preview state (Engine)
 
-- [ ] 4.1 Implement `Preview` (design D5): `Run`, `Playback`, `Shown`, `Update(TimeSpan)`, `Apply(PlaybackCommand)`, `Restart()` and `NextSeed()`. Verify with Engine tests:
+- [x] 4.1 Implement `Preview` (design D5): `Run`, `Playback`, `Shown`, `Update(TimeSpan)`, `Apply(PlaybackCommand)`, `Restart()` and `NextSeed()`. Verify with Engine tests:
   - `Update` advances the run one step and then playback;
   - `Update` on a completed run only advances playback;
   - `Restart` keeps the seed, gives an empty timeline, and returns to `FollowingLatest`;
   - `NextSeed` uses `RunSeed.Next`;
   - `Apply` gives the same playback as `Apply` in Core for the same count.
-- [ ] 4.2 Add `Preview` to the "where it lives" section of `docs/design/timeline-and-playback.md`. Verify by reading it.
+- [x] 4.2 Add `Preview` to the "where it lives" section of `docs/design/timeline-and-playback.md`. Verify by reading it.
 
 ## 5. The preview window (Desktop)
 

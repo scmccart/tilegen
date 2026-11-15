@@ -70,7 +70,7 @@ string Describe(DefinitionOutcome outcome) => outcome switch
 - **The compiler:** CS8509 is an error in `.editorconfig`, whatever `TreatWarningsAsErrors` says. A switch *expression* over a `closed` type, a `union` or an enum that misses a case fails the build. Covers R2 for switch expressions.
   - Switch *statements* are not checked by the compiler. IDE0010 also flags complete switch statements and wants a `default`, so it is not used. A switch statement over an outcome stays with review, so write a switch expression where you can.
   - CS8524 is silenced, because with it on a switch expression that handles every named enum member still fails and only a discard arm fixes it (`illegal-states R5`). A missing named member still fails with CS8509.
-- **Tests:** each case of an outcome type is produced by at least one test (`testing.md`). `ValidationOutcome` and `Finding` are the first outcome types. Each of their cases is produced by a test in `Tilegen.Core.Tests`. Review checks that every new case gets one.
+- **Tests:** each case of an outcome type is produced by at least one test (`testing.md`). `ValidationOutcome` and `Finding`, from validating a pipeline, are the first outcome types. Each of their cases is produced by a test in `Tilegen.Core.Tests`. `RunState`, a generation run's state (`Running`, `Completed` or `Stopped`), is the second. Each of its cases is produced by a test in `Tilegen.Engine.Tests`. Review checks that every new case gets one.
 - **Review alone:** R1, R3 to R13, and R2 for switch statements. A discard arm over an outcome type is always a finding.
 
 ## PR checklist

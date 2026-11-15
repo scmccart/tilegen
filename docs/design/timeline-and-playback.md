@@ -4,17 +4,35 @@
 
 A generation run steps a validated pipeline one technique step at a time and keeps a copy of every frame on a timeline. Playback decides which frame of that timeline the preview shows, and how the user's controls and the passing of time move it. Playback works the same whether the run is still generating or has finished: it sees only how many frames the timeline holds.
 
-Playback is a value in Core with pure transition functions. Nothing in it reads a clock, and nothing in it knows about the window. The preview passes in the frame count and the elapsed time, and draws the frame that playback says is shown.
+The run and its timeline are in Engine. Playback is a value in Core with pure transition functions. Nothing in it reads a clock, and nothing in it knows about the window. `Preview`, in Engine, holds the current run and its playback. On each update its caller passes in the elapsed time. `Preview` advances the run one step, passes playback the frame count and the elapsed time, and reports the frame that playback says is shown.
 
 ## How it works
 
 ### The run
 
-_To be written with the generation run (`engine-preview`, task 3.4): stage order, one `Random` per stage, one frame per advance, and completing and stopping._
+`GenerationRun.Start(pipeline, seed)` takes a `ValidatedPipeline` and a `RunSeed`. Only validation builds a validated pipeline, so a raw description can't be run. The run starts `Running` with an empty timeline, and generates nothing until it is first advanced.
+
+- **Stage order.** Stages run in the validated pipeline's order. Every frame of one stage comes before any frame of the next.
+- **One `Random` per stage.** When a stage starts, the run builds `new Random(StageSeed.Derive(runSeed, stage.Id).Value)` and passes it to `Generation.Run`, which hands the stage to its technique. Core derives the seed, and the engine constructs the `Random`, which Core never does. Each stage draws from its own stream. A stage's frames are therefore the frames its technique gives when it is run alone with that stage seed, and a different stage before it doesn't change them. The `Random` is built when the stage starts rather than when the run starts. That changes nothing, because the streams are independent.
+- **One frame per advance.** `Advance` asks the current stage's enumerator for its next frame. When there is one, the run puts a copy on the timeline (see below) and returns. When the stage has none left, the run disposes the enumerator, moves to the next stage and asks again, in the same call. So an advance adds exactly one frame whenever any stage still has one. Between advances the run does nothing: the caller sets the pace.
+- **Completing.** The advance that finds no frame left in any stage completes the run and adds no frame. A run of one 3-octave noise stage gains a frame on each of its first three advances and completes on the fourth.
+- **Stopping.** `Stop` turns a running run into a stopped one. Stopping is the engine no longer enumerating: the run disposes the current stage's enumerator and never asks it for another frame. The frames already kept stay. Stopping is not an error, and stopping a completed run leaves it completed.
+- **The state** is the closed `RunState`, with the cases `Running`, `Completed` and `Stopped`. `Advance` and `Stop` each switch over it with an arm per case, and change nothing in a completed or stopped run.
+- **Determinism.** The same validated pipeline and run seed give the same timeline: the same length, the same stage and step for each entry, and the same pixels, on the same .NET version and platform.
 
 ### The timeline
 
-_To be written with the timeline (`engine-preview`, task 3.4): what is kept and its memory cost, and why entries are read-only._
+`Timeline` holds a `TimelineEntry` for every frame the run has yielded, in order. An entry records:
+
+- the id of the stage that yielded the frame;
+- the frame's step within that stage, counting from 1;
+- the frame.
+
+A step below 1 throws.
+
+- **Copies.** A frame a technique yields is a view over its working buffer, and is valid only until its next step. The run copies each frame with `Frame.ToBuffer()` as it is yielded, and wraps the copy in a new `Frame`. Nothing else holds the copy, and a `Frame` only reads, so an entry's pixels never change.
+- **Read-only to its readers.** `Timeline` has a `Count` and an indexer, and nothing else. Only the run that owns it appends, through an internal method. Nothing removes or replaces an entry. Handing out the mutable `PixelBuffer` instead would let any reader change the history.
+- **Everything is kept** for the length of the run. A new run starts with a new timeline. Each frame costs width × height × 4 bytes. Two 128 × 128 stages of 4 and 6 octaves keep 10 frames, 640 KiB. One 4096 × 4096 stage of 12 octaves keeps 768 MiB.
 
 ### Playback
 
@@ -71,7 +89,23 @@ The arithmetic is in whole ticks, so it is exact. The same total elapsed time gi
 
 When playing reaches the last frame, playback becomes `FollowingLatest`, and the carry is dropped. The preview then keeps showing the newest frame as the run adds more, as it does at the start of a run. Playing past the end in one long update, such as after the window was stalled, also ends there.
 
+### The preview
+
+`Preview` holds the current `GenerationRun` and the `Playback` over its timeline, so whatever shows the preview reads that state from Engine and keeps none of its own. Constructed from a validated pipeline and a run seed, it starts a run and follows the latest frame. Each method forwards to the run or to `PlaybackRules`, and decides nothing itself.
+
+- **`Update(elapsed)`** advances the run exactly one step, then advances playback by `elapsed` over the frame count that step left. The run goes first, so a frame added in this update is already on the timeline playback sees. For example, playing from the first of two frames, an update of one interval adds a third frame and moves playback to the second frame (index 1). With playback first, the same update would reach the last of two frames and follow the latest instead. A completed or stopped run doesn't change, so only playback moves.
+- **`Apply(command)`** gives the playback that `PlaybackRules.Apply` gives for the current frame count.
+- **`Shown`** is `PlaybackRules.Shown` for the current playback and frame count, computed each time it is read.
+- **`Restart()`** stops the run and starts a new one with the same seed. **`NextSeed()`** does the same with `RunSeed.Next()`, which wraps from `int.MaxValue` to `int.MinValue`. Either way playback returns to `FollowingLatest`, because the new timeline is empty and any held index would be off it.
+
 ## Inputs
+
+A run has no parameters of its own. It takes:
+
+- **A validated pipeline.** How many frames each stage yields is its technique's business.
+- **A run seed:** any 32-bit signed whole number.
+
+`Preview` takes the same two values when it is constructed. After that, its caller passes the elapsed time to each `Update` and a command to each `Apply`.
 
 Playback has no parameters. Its inputs, all passed in by the caller, are:
 
@@ -83,7 +117,7 @@ The frame interval is a Core constant, not a parameter (see Decisions and limits
 
 ## Sources
 
-There is no published algorithm. The modes and the transition table were designed for tilegen in the `engine-preview` change (design D4). No code was copied.
+There is no published algorithm. The run, the timeline, the preview, the playback modes and the transition table were designed for tilegen in the `engine-preview` change (design D2 to D5). No code was copied.
 
 ## Decisions and limits
 
@@ -92,7 +126,11 @@ There is no published algorithm. The modes and the transition table were designe
 - **A bad index throws instead of being clamped.** Within a run the timeline only grows, and a new run resets playback, so an index past the end means the caller passed the wrong count or a stale playback. Clamping would hide that.
 - **A negative frame count or elapsed time also throws.** Design D4 doesn't mention either. Both can only come from a bug, and splitting elapsed time only gives the same result when no part is negative.
 - **A `Playing` at the last frame is not checked for.** No transition produces one, so it isn't rejected on input either. Passed in directly, it behaves as the table and `Advance` say: `Advance` turns it into `FollowingLatest`, even with zero elapsed time.
-- **The run's limits** (the UI thread, an unbounded timeline, one step per update) are written up with the run and the timeline (`engine-preview`, task 3.4).
+- **The run advances on its caller's thread, one step per call.** In the preview that is the UI thread, so a slow step blocks the window for as long as it takes. Value-noise steps at small sizes take milliseconds. There is no worker thread, `Task` or cancellation token. Stopping is just no longer asking for frames. The caller pulls each step, so a later change could move stepping onto a worker without changing Core.
+- **One step per update.** `Preview.Update` advances the run exactly once, so each new frame is shown for at least one update. A long run is slow to watch: at 60 updates a second, it takes 60 steps a second. There is no step budget measured in time.
+- **The timeline is unbounded.** Every frame is kept, with no cap, no eviction and no down-sampling, so a large stage with many steps can use a lot of memory (see The timeline). Which frames to keep would be a Core decision, returned as data.
+- **`RunState` is a closed record hierarchy, not an enum.** Its cases carry no data, so `illegal-states R4` alone would allow an enum. But `railway R2` requires an outcome set to be a closed hierarchy or a union, and the more specific rule wins. `Running` is a case too, so the run's whole state is one type.
+- **Disposing an enumerator is hygiene.** A technique holds nothing that needs releasing, so it can be abandoned after any frame. The run still disposes the enumerator on stopping and on completing, so the iterator ends as soon as the run is done with it. No test observes the disposal: the stage set is closed, so there is no stand-in technique that could record it.
 
 ## Where it lives
 
@@ -105,4 +143,13 @@ There is no published algorithm. The modes and the transition table were designe
 - `tests/Tilegen.Core.Tests/Replay/PlaybackRulesTests.cs`: every cell of the transition table (both sides of each condition and clamp), the empty-timeline row, the `Advance` rules, and the bad-index, negative-count and negative-time throws.
 - `tests/Tilegen.Core.Tests/Replay/PlaybackTypeTests.cs`: switches over `Playback`, `ShownFrame` and `PlaybackCommand` with no discard arm; the constructor checks; the interval.
 - `tests/Tilegen.Core.Tests/Replay/PlaybackProperties.cs`: CsCheck properties over playback reached by generated runs of added frames, commands and elapsed times from a new run (0 to 50 frames). The shown frame is `NoFrame` exactly when the timeline is empty, and is otherwise on it. Splitting elapsed time over updates gives the same playback. Any command on an empty timeline gives `FollowingLatest`. Zero elapsed time changes nothing. A reached `Playing` is always before the last frame.
-- The run and the timeline: _to be written with task 3.4._
+- `src/Tilegen.Engine/GenerationRun.cs`: `GenerationRun`, with `Start`, `Advance` and `Stop`.
+- `src/Tilegen.Engine/RunState.cs`: `RunState`, `Running`, `Completed` and `Stopped`.
+- `src/Tilegen.Engine/Timeline.cs` and `src/Tilegen.Engine/TimelineEntry.cs`: the timeline and its entries.
+- `src/Tilegen.Engine/Preview.cs`: `Preview`, the current run and its playback.
+- The Engine types are in the `Tilegen.Engine` namespace.
+- `tests/Tilegen.Engine.Tests/GenerationRunScenarioTests.cs`: one test per scenario in the generation-run spec. Each stage's kept frames are compared, pixel for pixel, with its technique run alone through `Generation.Run` with the derived stage seed. Between them the tests produce every `RunState` case.
+- `tests/Tilegen.Engine.Tests/RunTypeTests.cs`: a switch over `RunState` with no discard arm; the timeline's public surface, which has no way to add, remove or replace an entry; the step counting from 1.
+- `tests/Tilegen.Engine.Tests/PreviewTests.cs`: a new preview; `Update` stepping the run before playback, and only playback once the run has completed; `Restart` keeping the seed and `NextSeed` moving it, each stopping the old run and returning to `FollowingLatest` on an empty timeline; `Apply` matching `PlaybackRules.Apply` for every command.
+- `tests/Tilegen.Engine.Tests/TestPipelines.cs`: builds the tests' pipelines through `Pipeline.Validate`, and runs a stage's technique alone for comparison.
+- The Engine tests need no fakes: nothing here is a port.

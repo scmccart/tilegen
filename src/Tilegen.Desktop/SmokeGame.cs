@@ -14,9 +14,10 @@ namespace Tilegen.Desktop;
 /// </summary>
 public sealed class SmokeGame : Game
 {
-    // Naming each marker's assembly makes Desktop's references to the layers real uses in IL.
+    // Naming each layer's assembly, through a type it declares, makes Desktop's references to the
+    // layers real uses in IL.
     private readonly string _labelText =
-        $"tilegen: {typeof(EngineMarker).Assembly.GetName().Name}, "
+        $"tilegen: {typeof(GenerationRun).Assembly.GetName().Name}, "
         + $"{typeof(ScriptingMarker).Assembly.GetName().Name}, "
         + $"{typeof(ExportMarker).Assembly.GetName().Name}";
 

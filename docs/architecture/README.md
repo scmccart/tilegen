@@ -61,6 +61,7 @@ These checks are in place. Each doc's Enforcement section says which of its rule
 - **One project per layer,** with references that follow the dependency rule. The declared-reference test in `tests/Tilegen.ArchitectureTests` checks them from each project's `obj/project.assets.json`, so it sees a reference the code doesn't use yet. It mirrors the table in `ports-and-adapters.md`: every src project and the test kit has the project references the dependency rule requires and none the table doesn't allow, only the packages the table lists, and no framework reference beyond the base library. Raw DLL references don't appear in that file, so review catches them. The test kit isn't a layer in the table; its row follows `testing.md`.
 - **Core's banned list:** `src/Tilegen.Core/BannedSymbols.txt` (Microsoft.CodeAnalysis.BannedApiAnalyzers), with RS0030 as an error.
 - **The test banned list:** `tests/BannedSymbols.txt`, applied to every project under `tests/`.
+- **The golden comparer:** `Golden` in `tests/Tilegen.TestKit`. It compares decoded pixels, writes the actual image (and the expected one on a mismatch) under `golden-results/<technique>/`, and has no record mode. Its tests are in `tests/Tilegen.Core.Tests/TestKit/`.
 - **The compiler:** `.editorconfig` makes CS8509 (a switch expression that misses a case) an error and silences CS8524. Nullable is enabled, and warnings are errors.
 - **The architecture tests:** `tests/Tilegen.ArchitectureTests`, on NetArchTest.Rules (the version is in `Directory.Packages.props`). They check each layer's forbidden namespaces and its required ones (`testing R17`), that every type sits under its assembly's root namespace, that each assembly shows at least one type to the rules, and that each forbidden row doesn't overlap the assembly's own namespace, so a rule that matches by namespace can't pass on nothing.
 - **CI:** `.github/workflows/build.yml` runs the build and every test project on Windows, so each check above runs on each push to main and each pull request.
@@ -71,8 +72,7 @@ Not enforced:
 
 - **Switch statements.** CS8509 covers switch expressions only, and IDE0010 also flags complete switches. Review covers them.
 - **A banned type used only in a signature,** such as a `CancellationToken` parameter or a `Task` return. RS0030 doesn't see it; review does.
-- **The golden comparer,** deferred to the first technique change, because it needs a PNG decoder and a pixel type, which nothing has yet (owner decision, 2026-11-14).
-- **Checks with nothing to check yet:** the determinism and inputs-unchanged tests wait for the first technique; the required Roslyn and PNG dependencies, and Engine's imaging-namespace rule, wait for those packages.
+- **Checks with nothing to check yet:** the inputs-unchanged test waits for the first technique that takes an input. Value noise, the first technique, takes none; its determinism property is in place (`functional-core.md`, Enforcement). The required Roslyn and PNG dependencies, and Engine's imaging-namespace rule, wait for those packages.
 
 Never leave a check disabled without recording it.
 

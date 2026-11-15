@@ -28,7 +28,9 @@ public class DeclaredReferenceTests
     // This mirrors the table in docs/architecture/ports-and-adapters.md ("How it applies here"):
     // a project may reference what its row allows, and must reference the layers the dependency
     // rule wires it to. A new package updates both in the same change. TestKit is not in the table:
-    // it holds fakes of Engine's ports and golden helpers over Core values (testing.md).
+    // it holds fakes of Engine's ports and golden helpers over Core values (testing.md). Its two
+    // PNG packages decode goldens and write failure images; they are not private because tests
+    // run their code, though the comparer exposes none of their types.
     private static readonly IReadOnlyDictionary<string, Expectation> Expected = new Dictionary<string, Expectation>
     {
         ["Tilegen.Core"] = new("src/Tilegen.Core", [], [], [BannedApiAnalyzers]),
@@ -48,7 +50,11 @@ public class DeclaredReferenceTests
             "tests/Tilegen.TestKit",
             ["Tilegen.Engine"],
             ["Tilegen.Engine", "Tilegen.Core"],
-            [BannedApiAnalyzers]),
+            [
+                BannedApiAnalyzers,
+                new("StbImageSharp", MustBePrivate: false),
+                new("StbImageWriteSharp", MustBePrivate: false),
+            ]),
     };
 
     public static TheoryData<string> Projects => new(Expected.Keys);

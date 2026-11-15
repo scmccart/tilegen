@@ -1,0 +1,13 @@
+{
+  "technique": "value-noise",
+  "parameters": {
+    "width": 64,
+    "height": 64,
+    "octaves": 4,
+    "cellSize": 16,
+    "persistence": 0.5
+  },
+  "stageSeed": 20261114,
+  "dotnet": "11.0",
+  "approvedIn": "pipeline-spine"
+}

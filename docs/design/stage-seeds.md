@@ -17,7 +17,7 @@ A stage's seed depends on the run seed and the stage's id and nothing else: not 
 
 The mask is there because `new Random(s)` and `new Random(-s)` give the same sequence. Checked on .NET 11.0.0 for 1, 2, 42, 12345, 1,000,000 and `int.MaxValue` (each against its negation), and for `int.MinValue` against `int.MaxValue`: the first 1000 values of `Next()` and `NextDouble()` were identical in every pair. If seeds could be negative, two derivations could differ and still produce the same stage output. `StageSeedTests.A_negated_random_seed_gives_the_same_sequence` keeps that fact checked.
 
-`RunSeed` is a `readonly record struct` around an `int`, and every `int` is a valid run seed. `StageSeed` has a private constructor, so the only way to get one is `Derive`, which makes "non-negative" true by construction.
+`RunSeed` is a `readonly record struct` around an `int`, and every `int` is a valid run seed. `RunSeed.Next()` gives the seed plus one, wrapping from `int.MaxValue` to `int.MinValue`; the preview's next-seed control uses it. `StageSeed` has a private constructor, so the only way to get one is `Derive`, which makes "non-negative" true by construction.
 
 ## Inputs
 

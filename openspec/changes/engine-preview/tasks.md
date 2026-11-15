@@ -116,8 +116,8 @@ Unless a task says otherwise, every task is verified by:
 
 ## 6. Integration
 
-- [ ] 6.1 Run `grep -rn "EngineMarker\|SmokeGame" src tests docs .claude CLAUDE.md` and bring each remaining hit up to date. Verify that the grep is empty apart from the archived OpenSpec changes.
-- [ ] 6.2 Run `openspec validate engine-preview --strict`, the full build and `dotnet test -- --minimum-expected-tests 1`. Verify that all three pass.
+- [x] 6.1 Run `grep -rn "EngineMarker\|SmokeGame" src tests docs .claude CLAUDE.md` and bring each remaining hit up to date. Verify that the grep is empty apart from the archived OpenSpec changes.
+- [x] 6.2 Run `openspec validate engine-preview --strict`, the full build and `dotnet test -- --minimum-expected-tests 1`. Verify that all three pass.
 
 ## Workflow follow-up
 

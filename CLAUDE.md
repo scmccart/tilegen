@@ -70,6 +70,7 @@ All five projects exist under `src/`, and the names are final. The build and the
 - **Phase one is done when:** a pipeline of techniques is described in a C# definition and hot-reloaded on save; it generates an isometric tileset with transitions between at least two terrains from parameters and a seed; the app shows a live preview and a replayable step-by-step animation of the generation; and the exported PNG atlas and Tiled tileset open in Tiled, where the terrain brush paints correct transitions.
 - **Deferred:** tiles with height (cliffs, walls), animation, other projections, engine-specific exporters, a visual pipeline editor, a codegen library to cut definition boilerplate, other scripting languages, Linux testing, and an integration that lets an agent operate tilegen.
 - **Script integration is a seam, not a plugin system.** The engine consumes a pipeline description and doesn't know what produced it. Keep that seam; don't design a second language front-end before one is wanted.
+- **The roadmap is `docs/roadmap.md`:** phase one's remaining work, cut into OpenSpec changes, with their order and status. Pick the next change from it. The PR that proposes a change marks its row in progress, and the PR that archives it marks it done.
 - **After phase one: not decided yet,** on purpose. Don't plan past it.
 
 ## Commit messages

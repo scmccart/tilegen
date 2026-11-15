@@ -67,8 +67,8 @@ Every task's verification includes `dotnet build` with 0 warnings and `dotnet te
 
 ## 6. Integration
 
-- [ ] 6.1 Run `dotnet build` (0 warnings) and `dotnet test -- --minimum-expected-tests 1`. Report the counts per project, and confirm that CI is green on the pushed branch.
-- [ ] 6.2 Check the PR against the checklists in `functional-core.md`, `illegal-states.md`, `railway.md` and `testing.md`, and record each item's result in the PR description.
+- [x] 6.1 Run `dotnet build` (0 warnings) and `dotnet test -- --minimum-expected-tests 1`. Report the counts per project, and confirm that CI is green on the pushed branch.
+- [x] 6.2 Check the PR against the checklists in `functional-core.md`, `illegal-states.md`, `railway.md` and `testing.md`, and record each item's result in the PR description.
 
 ## Workflow follow-up
 

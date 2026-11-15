@@ -6,7 +6,7 @@ tilegen is a personal desktop tool and testbench for procedurally generating gam
 
 ## Build and test
 
-The solution is `tilegen.slnx`. Build everything from the repo root with `dotnet build`; warnings are errors, so a clean build has none. Run the app with `dotnet run --project src/Tilegen.Desktop`; it opens the window, so it takes focus. CI (`.github/workflows/build.yml`) runs exactly the build and test commands below on Windows.
+The solution is `tilegen.slnx`. Build everything from the repo root with `dotnet build`; warnings are errors, so a clean build has none. Run the app with `dotnet run --project src/Tilegen.Desktop`; it opens the window, so it takes focus. CI (`.github/workflows/build.yml`) runs the same build and test commands on Windows. It builds first, then tests with `--no-build`.
 
 - **Test:** `dotnet test -- --minimum-expected-tests 1` runs every test project and fails any project that runs no tests. Plain `dotnet test` reports a project that ran nothing as "Zero tests ran" but still exits 0. Keep the `--`: without it the option is silently ignored. `dotnet test --project tests/<Project>` runs one, for example `dotnet test --project tests/Tilegen.Core.Tests`. To leave out integration tests, run `dotnet test --filter-not-trait "Category=Integration"` (`testing R16`).
 - **Tests run on Microsoft.Testing.Platform,** set in `global.json`. `dotnet test` therefore takes `--project` or `--solution` rather than a positional path, and xUnit's filter options (`--filter-trait`, `--filter-not-trait`, `--filter-class` and others) go straight on the command line.

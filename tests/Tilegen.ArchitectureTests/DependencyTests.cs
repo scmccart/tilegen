@@ -45,6 +45,8 @@ public class DependencyTests
         { Layers.Export, "MonoGame" },
         { Layers.Export, "Apos" },
         { Layers.Export, "Microsoft.CodeAnalysis" },
+
+        { Layers.Desktop, "Microsoft.CodeAnalysis" },
     };
 
     // testing R17: each dependency the rule allows is also asserted, so the forbidden rows can't

@@ -75,8 +75,8 @@ public readonly record struct PixelCoord(int X, int Y);
   - Switch *statements* are not checked by the compiler. IDE0010 can't fill the gap: it also flags complete switch statements and wants a `default`. A switch statement over a closed type or union stays with review, so write a switch expression where you can.
   - CS8524 is silenced (owner decision, 2026-11-14). With it on, a switch expression that handles every named enum member still fails, and only a discard arm fixes it, which R5 forbids. With it off, a missing named member still fails with CS8509. An out-of-range enum value throws at run time, which is a bug.
 - **Constructors:** hidden constructors and factories make R3 and R8 structural.
-- **Structure:** R14 is structural. Core and Engine may not depend on `Tilegen.Export` at all: the dependency rule forbids it, and the architecture tests in `tests/Tilegen.ArchitectureTests` check it. So the export adapter's wire types can't reach either.
-- **Review alone:** R2 (until an analyzer or test checks description types), R4, R6, R7, R9 to R13, and R5 for switch statements.
+- **Structure:** R14 in part. Core and Engine may not depend on `Tilegen.Export` at all: the dependency rule forbids it, and the architecture tests in `tests/Tilegen.ArchitectureTests` check it. So the codec's types can't reach either. That Tiled's shapes aren't redefined elsewhere is review.
+- **Review alone:** R2 (until an analyzer or test checks description types), R4, R6, R7, R9 to R13, R14 in part, and R5 for switch statements.
 
 ## PR checklist
 

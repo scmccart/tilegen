@@ -25,8 +25,8 @@ There are no end-to-end or GUI tests and no performance suite. That is the owner
 ## How it applies here
 
 - **Framework:** xUnit v3.
-- **Architecture tests** use NetArchTest.Rules 1.3.2.
-- **Property tests** will use CsCheck. The first change that writes a property test pins it.
+- **Architecture tests** use NetArchTest.Rules.
+- **Property tests** will use CsCheck. The first change that writes a property test adds it to `Directory.Packages.props`.
 - **A shared test kit** owns the fakes, golden loading and exact pixel comparison, so no test project writes its own. It exists as `tests/Tilegen.TestKit` and is empty until the first fake or golden helper.
 
 ## Rules
@@ -65,7 +65,7 @@ There are no end-to-end or GUI tests and no performance suite. That is the owner
 - **A banned-API list for test projects** is in place: `tests/BannedSymbols.txt`, applied to every project under `tests/`, with RS0030 as an error. It bans `Thread.Sleep`, every overload of `Task.Delay`, and `DateTime.Now` and `UtcNow`. Covers R12 in part: a shared static or network call is still a review finding.
 - **The test kit's golden comparer** is not built yet. It arrives with the first technique change, because it needs a PNG decoder and a pixel type that nothing has yet (owner decision, 2026-11-14). It will decode before comparing, and fail with both images written out for inspection. Covers R4 and supports R6.
 - **CI** (`.github/workflows/build.yml`) builds and runs every test project on Windows on each push to main and each pull request, and fails a test project that runs no tests.
-- **Review alone:** R1, R2, R5 to R11, R13 to R18. R6 depends on the owner: nothing mechanical stops a re-record.
+- **Review alone:** R1 to R3, R5 to R11, R13 to R16 and R18, and R17 in part. The architecture tests assert the required references, and review checks that each new rule does too. R6 depends on the owner: nothing mechanical stops a re-record.
 
 ## PR checklist
 

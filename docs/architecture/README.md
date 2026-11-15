@@ -58,12 +58,12 @@ Not adopted: an entity component system (no entity simulation), a process archit
 
 These checks are in place. Each doc's Enforcement section says which of its rules they cover.
 
-- **One project per layer,** with references that follow the dependency rule. The declared-reference test in `tests/Tilegen.ArchitectureTests` checks them from each project's `obj/project.assets.json`, so it sees a reference the code doesn't use yet. It mirrors the table in `ports-and-adapters.md`: every src project and the test kit has the project references the dependency rule requires and none the table doesn't allow, and only the packages the table lists.
+- **One project per layer,** with references that follow the dependency rule. The declared-reference test in `tests/Tilegen.ArchitectureTests` checks them from each project's `obj/project.assets.json`, so it sees a reference the code doesn't use yet. It mirrors the table in `ports-and-adapters.md`: every src project and the test kit has the project references the dependency rule requires and none the table doesn't allow, only the packages the table lists, and no framework reference beyond the base library. Raw DLL references don't appear in that file, so review catches them. The test kit isn't a layer in the table; its row follows `testing.md`.
 - **Core's banned list:** `src/Tilegen.Core/BannedSymbols.txt` (Microsoft.CodeAnalysis.BannedApiAnalyzers), with RS0030 as an error.
 - **The test banned list:** `tests/BannedSymbols.txt`, applied to every project under `tests/`.
 - **The compiler:** `.editorconfig` makes CS8509 (a switch expression that misses a case) an error and silences CS8524. Nullable is enabled, and warnings are errors.
-- **The architecture tests:** `tests/Tilegen.ArchitectureTests`, on NetArchTest.Rules 1.3.2. They check each layer's forbidden namespaces and its required ones (`testing R17`), and that every type sits under its assembly's root namespace, so a rule that matches by namespace can't pass on nothing.
-- **CI:** `.github/workflows/build.yml` runs the build and every test project on Windows, so each check above runs on every push and pull request.
+- **The architecture tests:** `tests/Tilegen.ArchitectureTests`, on NetArchTest.Rules (the version is in `Directory.Packages.props`). They check each layer's forbidden namespaces and its required ones (`testing R17`), that every type sits under its assembly's root namespace, that each assembly shows at least one type to the rules, and that each forbidden row doesn't overlap the assembly's own namespace, so a rule that matches by namespace can't pass on nothing.
+- **CI:** `.github/workflows/build.yml` runs the build and every test project on Windows, so each check above runs on each push to main and each pull request.
 
 NetArchTest was chosen over two alternatives. ArchUnitNET 0.13.5 passed vacuously on a `System.IO` dependency unless CoreLib was loaded into its architecture too. A reflection check over `Assembly.GetReferencedAssemblies()` sees assembly names only, such as `System.Runtime`, so it can't express a namespace rule. NetArchTest has been unmaintained since 2021; if it stops reading a new runtime's assemblies, its maintained fork NetArchTest.eNhancedEdition, with the same API, is the fallback.
 
@@ -71,7 +71,7 @@ Not enforced:
 
 - **Switch statements.** CS8509 covers switch expressions only, and IDE0010 also flags complete switches. Review covers them.
 - **A banned type used only in a signature,** such as a `CancellationToken` parameter or a `Task` return. RS0030 doesn't see it; review does.
-- **The golden comparer,** deferred to the first technique change (owner decision, 2026-11-14).
+- **The golden comparer,** deferred to the first technique change, because it needs a PNG decoder and a pixel type, which nothing has yet (owner decision, 2026-11-14).
 - **Checks with nothing to check yet:** the determinism and inputs-unchanged tests wait for the first technique; the required Roslyn and PNG dependencies, and Engine's imaging-namespace rule, wait for those packages.
 
 Never leave a check disabled without recording it.

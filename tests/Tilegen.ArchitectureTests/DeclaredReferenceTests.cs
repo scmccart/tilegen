@@ -105,8 +105,24 @@ public class DeclaredReferenceTests
         Assert.True(problems.Count == 0, string.Join(Environment.NewLine, problems));
     }
 
-    // project.frameworks.<tfm> holds the direct packages; project.restore.frameworks.<tfm> holds
-    // the project references.
+    [Theory]
+    [MemberData(nameof(Projects))]
+    public void Project_declares_no_framework_reference_beyond_the_base_library(string project)
+    {
+        // NuGet adds Microsoft.NETCore.App itself, and leaves the node out when it has nothing to say.
+        var problems = ReadFrameworks(project)
+            .SelectMany(framework => Properties(framework, "frameworkReferences"))
+            .Select(reference => reference.Name)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(name => !string.Equals(name, "Microsoft.NETCore.App", StringComparison.OrdinalIgnoreCase))
+            .Select(name => $"{project} references framework {name}, which it may not (the base library only).")
+            .ToList();
+
+        Assert.True(problems.Count == 0, string.Join(Environment.NewLine, problems));
+    }
+
+    // project.frameworks.<tfm> holds the direct packages and the framework references;
+    // project.restore.frameworks.<tfm> holds the project references.
     private static List<JsonElement> ReadFrameworks(string project, string? section = null)
     {
         var path = Path.GetFullPath(Path.Combine(RepositoryRoot(), Expected[project].Directory, "obj", "project.assets.json"));

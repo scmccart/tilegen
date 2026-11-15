@@ -13,6 +13,17 @@ On launch, the window SHALL validate its built-in pipeline description. If the d
 - **WHEN** the app is launched
 - **THEN** the window shows the frames of the first stage and then the second as they are generated, and the run is reported as completed at the end
 
+### Requirement: Live generation keeps the replay's pace
+The run SHALL advance one step for each whole frame interval of elapsed time, the same interval playback uses. Leftover time SHALL carry over to the next update, so generating and replaying move at the same rate, whatever the update rate.
+
+#### Scenario: Generation keeps the replay's pace
+- **WHEN** a run is generating, and time passes in updates totalling two and a half frame intervals
+- **THEN** two steps have been taken, and half an interval is carried over
+
+#### Scenario: Restart is watchable
+- **WHEN** the user restarts a completed run
+- **THEN** the frames arrive one per frame interval, at the same rate as a replay
+
 ### Requirement: An invalid description shows its findings
 If the built-in description does not validate, the window SHALL NOT start a run. It SHALL list every finding as a line of text for a person, naming the stage and what is wrong.
 

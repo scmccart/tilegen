@@ -119,6 +119,22 @@ Unless a task says otherwise, every task is verified by:
 - [x] 6.1 Run `grep -rn "EngineMarker\|SmokeGame" src tests docs .claude CLAUDE.md` and bring each remaining hit up to date. Verify that the grep is empty apart from the archived OpenSpec changes.
 - [x] 6.2 Run `openspec validate engine-preview --strict`, the full build and `dotnet test -- --minimum-expected-tests 1`. Verify that all three pass.
 
+## 7. Paced live generation (added after the owner's manual checks)
+
+- [ ] 7.1 Add `Pacing.Steps(TimeSpan carry, TimeSpan elapsed)` and `Paced(int Steps, TimeSpan Carry)` in `Tilegen.Core.Replay` (design D10), using `Playback.FrameInterval`. Throw on a carry outside [0, FrameInterval) or a negative elapsed time. Verify with tests in `Tilegen.Core.Tests/Replay/`:
+  - zero elapsed gives no steps and keeps the carry;
+  - two and a half intervals give 2 steps and half an interval;
+  - an existing carry adds up with the elapsed time;
+  - each argument check throws;
+  - a CsCheck property: splitting an elapsed total into any number of updates gives the same total steps and final carry as one update.
+- [ ] 7.2 Make `Preview.Update` advance the run once per step `Pacing.Steps` gives, keeping the carry, and reset the carry in `Restart` and `NextSeed` (design D5, D10). Update the Engine tests that relied on one step per update. Verify with Engine tests:
+  - an update shorter than an interval adds no frame;
+  - updates totalling two and a half intervals add 2 frames, and another half interval adds the 3rd;
+  - after `Restart`, the carry from the old run doesn't count toward the new run's first step;
+  - playback still advances after the run's steps in the same update.
+- [ ] 7.3 Update `docs/design/timeline-and-playback.md`: the opening paragraph, the preview's `Update`, and the "one step per update" limit, which becomes pacing at the frame interval. Verify by reading it against 7.1 and 7.2 as built.
+- [ ] 7.4 Check the window with `TILEGEN_SCREENSHOT` (CLAUDE.md). A capture at 0.6 s shows frame 2 of 2 and the run running, and a capture at 4 s shows frame 10 of 10 and the run completed. Verify by reading both images. Then run `openspec validate engine-preview --strict`, the full build and `dotnet test -- --minimum-expected-tests 1`.
+
 ## Workflow follow-up
 
 - Run `openspec validate engine-preview --strict` before opening the PR.

@@ -26,7 +26,7 @@
 
 **Non-Goals:**
 
-- No general scheduler and no step budget measured by time. The engine advances exactly one step per update.
+- No general scheduler and no step budget measured by time. The preview advances the run one step per frame interval, the same interval playback uses (D10).
 - No abstraction over "something that produces frames". There is one run type.
 - No Desktop test project. The window is a manual check (`testing R2`).
 
@@ -38,6 +38,7 @@
 | `PixelBuffer.CopyTo`, `Frame.CopyTo` | Core | A bulk read, for upload. Nothing writes through it. |
 | `RunSeed.Next` | Core | Pure: the next seed, wrapping |
 | `Playback` (closed) and its `Apply`, `Advance` and `Shown`; `PlaybackCommand`; `ShownFrame` (closed), in `Tilegen.Core.Replay` | Core | Every playback decision (`functional-core R2`, `R3`) |
+| `Pacing.Steps` and `Paced`, in `Tilegen.Core.Replay` | Core | How many run steps an elapsed time is worth (D10) |
 | `GenerationRun`, `RunState`, `Timeline`, `TimelineEntry` | Engine | Gathers frames, calls Core, keeps copies |
 | `Preview` | Engine | Holds the current run and its playback, and forwards to Core |
 | The built-in description, the starting seed, finding text, texture upload, layout, controls | Desktop | Presentation and input only |
@@ -155,7 +156,7 @@ public sealed class Preview
     public GenerationRun Run { get; }
     public Playback Playback { get; }
     public ShownFrame Shown { get; }                 // PlaybackRules.Shown(Playback, Run.Timeline.Count)
-    public void Update(TimeSpan elapsed);            // Run.Advance() if running, then PlaybackRules.Advance
+    public void Update(TimeSpan elapsed);            // Run.Advance() Pacing.Steps times, then PlaybackRules.Advance
     public void Apply(PlaybackCommand command);
     public void Restart();                           // stop, new run, same seed, FollowingLatest
     public void NextSeed();                          // stop, new run with RunSeed.Next, FollowingLatest
@@ -163,7 +164,27 @@ public sealed class Preview
 ```
 
 - **It owns the mutable engine state Desktop reads each frame,** so Desktop keeps none of its own (`ports-and-adapters R11`). Every method forwards to Core or to the run. It isn't a manager layer (`R13`), because without it Desktop would hold the playback value itself.
-- **`Update` advances the run by exactly one step,** so the newest frame is visible for at least one frame of the window. A time-based budget waits until a slow technique needs one.
+- **`Update` advances the run once for each step `Pacing.Steps` gives (D10),** keeping the pacing carry between updates, and then advances playback. `Restart` and `NextSeed` reset the carry to zero with the new run.
+
+### D10. Live generation is paced at the frame interval
+
+At one step per update, the built-in run of 10 frames finished in a sixth of a second, so live generation and Restart looked like a flash, while Play's replay was watchable. The preview now paces the run by the same `Playback.FrameInterval`, so generating and replaying move at the same rate.
+
+```csharp
+// Illustrative; names are not final.
+public readonly record struct Paced(int Steps, TimeSpan Carry);   // 0 ≤ Carry < FrameInterval
+public static class Pacing
+{
+    public static Paced Steps(TimeSpan carry, TimeSpan elapsed);   // floor((carry + elapsed) / interval), and the rest
+}
+```
+
+- **It is a Core function,** because how many steps an elapsed time is worth is a decision (`functional-core R2`). `Preview` keeps the carry and enacts the count.
+- **It throws on a carry outside [0, FrameInterval) or a negative elapsed time,** like `PlaybackRules.Advance`.
+- **Leftover time carries over,** so the rate doesn't depend on the update rate. A long update, such as after the window stalls, takes every step it is owed at once.
+- **The first frame of a new run arrives one interval after it starts,** and the run reports completed one interval after its last frame, on the advance that finds no frame left. Both follow from one uniform rule, so neither gets a special case.
+- **Alternative:** a step budget measured in wall-clock time. Rejected: it reads a clock, and the frame interval already exists.
+- **Cost:** at 4 steps a second, a run with hundreds of steps takes minutes to watch. A speed control or a step budget comes with the first technique that needs one.
 
 ### D6. Bulk pixel read and upload
 
@@ -210,9 +231,10 @@ public sealed class Preview
     - splitting elapsed time over updates gives the same playback as one update;
     - commands on an empty timeline give `FollowingLatest`;
   - `CopyTo`: the same pixels in row-major order, and a short span throws;
-  - `RunSeed.Next`, including the wrap.
+  - `RunSeed.Next`, including the wrap;
+  - `Pacing.Steps`: whole intervals and the carry, the argument checks, and a CsCheck property that splitting elapsed time over updates gives the same total steps and carry.
 - **Engine (`Tilegen.Engine.Tests`):** one test per scenario in `specs/generation-run/spec.md`, and a few for `Preview`:
-  - `Update` steps the run and the playback;
+  - `Update` steps the run once per whole frame interval, carrying the rest, and then the playback;
   - `Restart` keeps the seed and empties the timeline;
   - `NextSeed` moves the seed;
   - `Apply` forwards to Core.
@@ -225,7 +247,7 @@ public sealed class Preview
 
 - **[A slow step blocks the window, since `Advance` runs on the UI thread]** → Noise steps at preview sizes take milliseconds. D2's pull shape lets a later change move stepping to a worker without changing Core or the run's API much.
 - **[The timeline grows without bound: a 4096 × 4096, 12-octave stage keeps 768 MiB]** → The built-in pipeline is small, and the risk is listed. A keep policy (a cap, or every nth frame) is a Core decision for a later change, and the topic doc names it as a known limit.
-- **[One step per update makes long runs slow to watch: 60 steps a second]** → It's fine for octaves. A budget comes with the first technique that has many cheap steps.
+- **[Pacing at the frame interval makes long runs slow to watch: 4 steps a second]** → It's fine for octaves. A speed control or a budget comes with the first technique that has many cheap steps (D10).
 - **[Moving `Id` to the base `Stage` touches validation and its tests]** → It's a mechanical change in task group 1, covered by the existing validation tests.
 - **[Apos.Gui layout and control names may differ from what's assumed]** → Tasks describe behaviour, and the implementer confirms the names against the package. The scaffold already uses `MenuPanel` and `Label`.
 - **[The adapter `typeof` references are a scaffold device kept alive]** → Each is commented with the change that removes it.
@@ -236,7 +258,7 @@ public sealed class Preview
   - what a run is, and how it steps: stage order, one `Random` per stage, one frame per advance, and completing and stopping;
   - what the timeline keeps (copies, everything, the memory cost), and why entries are read-only;
   - the playback modes, the transition table, the fixed interval and the carry, and following the latest frame;
-  - the decisions and limits: the UI thread, the unbounded timeline, one step per update;
+  - the decisions and limits: the UI thread, the unbounded timeline, pacing at the frame interval;
   - where it lives, and the tests that prove it.
 - No technique's topic doc changes.
 - Architecture docs that mention `EngineMarker` or `SmokeGame`, and `.claude/rules/*.md`, are updated in tasks.md, if they mention either one.

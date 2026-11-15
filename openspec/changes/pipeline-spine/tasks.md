@@ -21,15 +21,15 @@ Every task's verification includes `dotnet build` with 0 warnings and `dotnet te
 
 ## 2. Pipeline validation (Core)
 
-- [ ] 2.1 Add CsCheck 5.0.1 to `Directory.Packages.props` and to `Tilegen.Core.Tests`. Confirm its licence and record it in design D8's table if it differs. Verify that the package restores and a trivial CsCheck property runs.
-- [ ] 2.2 Implement `Pipeline.Validate` (design D3): description order, the id before the parameters, the cross-field rule only when both of its values are in range, and exactly one finding for an empty pipeline. Verify with tests for every scenario in `specs/pipeline-validation/spec.md` and the range scenarios in `specs/value-noise/spec.md`. Each `Finding` case and each `ValidationOutcome` case must be produced by at least one test (`railway` Enforcement).
-- [ ] 2.3 Add validation property tests with CsCheck:
+- [x] 2.1 Add CsCheck 5.0.1 to `Directory.Packages.props` and to `Tilegen.Core.Tests`. Confirm its licence and record it in design D8's table if it differs. Verify that the package restores and a trivial CsCheck property runs.
+- [x] 2.2 Implement `Pipeline.Validate` (design D3): description order, the id before the parameters, the cross-field rule only when both of its values are in range, and exactly one finding for an empty pipeline. Verify with tests for every scenario in `specs/pipeline-validation/spec.md` and the range scenarios in `specs/value-noise/spec.md`. Each `Finding` case and each `ValidationOutcome` case must be produced by at least one test (`railway` Enforcement).
+- [x] 2.3 Add validation property tests with CsCheck:
   - a generated in-range description always validates, keeping its ids and values;
   - one parameter pushed out of range gives exactly that `OutOfRange` finding;
   - validating twice gives equal results, and the description is unchanged.
 
   Verify that the properties pass.
-- [ ] 2.4 Update `docs/architecture/railway.md` Enforcement: there is now an outcome type (`ValidationOutcome`), and each of its cases and each `Finding` is produced by a test. Verify by reading it against 2.2's tests.
+- [x] 2.4 Update `docs/architecture/railway.md` Enforcement: there is now an outcome type (`ValidationOutcome`), and each of its cases and each `Finding` is produced by a test. Verify by reading it against 2.2's tests.
 
 ## 3. Stage seeds (Core)
 

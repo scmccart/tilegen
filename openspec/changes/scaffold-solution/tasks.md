@@ -23,9 +23,9 @@ Each bite check is a scratch edit, a run whose output shows the expected failure
 
 ## 4. Desktop smoke window
 
-- [ ] 4.1 Create `src/Tilegen.Desktop` (WinExe, references Engine, Scripting.CSharp and Export, plus MonoGame.Framework.DesktopGL 3.8.6.1 and Apos.Gui 3.1.0) with an explicit `Program` class in `Tilegen.Desktop` and `SmokeGame` as in design.md "Desktop smoke window". The label text names the wired layer assemblies through their markers. Add `Fonts/FiraSans-Regular.ttf` and `Fonts/OFL.txt`, both copied to output. Verify that `dotnet build` is clean, that the font and licence are in `bin/`, and that `git check-attr binary` on the TTF reports binary.
+- [x] 4.1 Create `src/Tilegen.Desktop` (WinExe, references Engine, Scripting.CSharp and Export, plus MonoGame.Framework.DesktopGL 3.8.6.1 and Apos.Gui 3.1.0) with an explicit `Program` class in `Tilegen.Desktop` and `SmokeGame` as in design.md "Desktop smoke window". The label text names the wired layer assemblies through their markers. Add `Fonts/FiraSans-Regular.ttf` and `Fonts/OFL.txt`, both copied to output. Verify that `dotnet build` is clean, that the font and licence are in `bin/`, and that `git check-attr binary` on the TTF reports binary.
 - [ ] 4.2 With the owner's go-ahead, run `dotnet run --project src/Tilegen.Desktop`. The owner confirms that the window opens and the label renders.
-- [ ] 4.3 Update the docs:
+- [x] 4.3 Update the docs:
   - `CLAUDE.md`: the run command in "Build and test", and the font sentence in Conventions (the UI font is the one third-party asset, under OFL, with its licence beside it).
   - `ports-and-adapters.md`'s table: Desktop's packages, and that Apos.Gui brings MonoGame.Extended, Apos.Shapes and Apos.Input.
   - `.claude/rules/desktop.md`: "Enforced by" is left for group 6.

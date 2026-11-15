@@ -42,8 +42,10 @@ public interface ITilesetWriter
 | `Tilegen.Engine` | Declares ports; steps techniques; timeline; reload | Core |
 | `Tilegen.Scripting.CSharp` | Adapter: compile definitions with Roslyn, load them, watch files | Engine, Core, `Microsoft.CodeAnalysis.CSharp` |
 | `Tilegen.Export` | Adapter: PNG encoding, the Tiled `.tsj`/`.tsx` codec, file writing | Engine, Core, one PNG encoding package |
-| `Tilegen.Desktop` | Composition root; drawing; input; UI | Everything above, MonoGame, Apos.Gui |
+| `Tilegen.Desktop` | Composition root; drawing; input; UI | Everything above, `MonoGame.Framework.DesktopGL`, `Apos.Gui` |
 | A definition | Returns a pipeline description | Core and the base library only |
+
+`Apos.Gui` brings Apos.Shapes, Apos.Input, Apos.Tweens and MonoGame.Extended transitively; they stay in Desktop with it.
 
 Every package an inner layer may reference is listed in this table. Adding one is an architecture change: update the table in the same change.
 

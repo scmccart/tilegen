@@ -6,7 +6,7 @@ tilegen is a personal desktop tool and testbench for procedurally generating gam
 
 ## Build and test
 
-The solution is `tilegen.slnx`. Build everything from the repo root with `dotnet build`; warnings are errors, so a clean build has none. The test command arrives with the test projects.
+The solution is `tilegen.slnx`. Build everything from the repo root with `dotnet build`; warnings are errors, so a clean build has none. The test command arrives with the test projects. Run the app with `dotnet run --project src/Tilegen.Desktop`; it opens the window, so it takes focus.
 
 - **The target is .NET 11, not .NET 10.** The architecture relies on C# 15 `closed` hierarchies and `union` types, so the compiler reports every switch that misses a case. Don't lower the target to make a package or tool happy; raise it as a design issue.
 - **Package versions are pinned in `Directory.Packages.props`** (central package management; project files carry no versions). MonoGame 3.8.6 and Apos.Gui 3.1 were current when the stack was chosen (November 2026).
@@ -24,7 +24,7 @@ The solution is `tilegen.slnx`. Build everything from the repo root with `dotnet
 - **Output is engine-neutral: a PNG atlas on a uniform rectangular grid plus a Tiled tileset, with transitions as Wang sets.** Tiled is the reference consumer. Don't add engine-native exporters (Godot `.tres`, Unity palettes); the likely consumers (Godot, MonoGame, Bevy, Flame) all load Tiled files.
 - **Implement the Tiled format from its documentation and never copy code from Tiled's source.** Tiled is GPL; tilegen is MIT.
 - **Implement algorithms from papers, articles and documentation, and cite the source in the technique's topic doc.** Copy code only from a source whose licence is compatible with MIT, with attribution in that doc.
-- **Commit no third-party art or tilesets, including as test fixtures or goldens.** The repository is public. Goldens come only from tilegen's own output.
+- **Commit no third-party art or tilesets, including as test fixtures or goldens.** The repository is public. Goldens come only from tilegen's own output. The UI font (Fira Sans, SIL Open Font License 1.1) is the one third-party asset; its licence sits beside it in `src/Tilegen.Desktop/Fonts/`, and it is not art for tiles.
 - **The owner approves every golden by eye. Never re-record a golden to make a failing test pass.** When a golden test fails, stop, work out whether the change in output was intended, and show the before and after images. A PR that re-records a golden says why the output changed.
 - **Tests are unit and integration tests; there are no end-to-end or GUI tests.** The UI, and painting with the exported tileset's terrain brush in Tiled, are checked by hand. Say in the PR which manual checks were done.
 - **Only Windows has to work, but keep Linux cheap.** Use MonoGame's DesktopGL flavour, and don't reach for a Windows-only API where a portable one costs nothing.

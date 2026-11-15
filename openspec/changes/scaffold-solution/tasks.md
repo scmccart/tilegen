@@ -66,7 +66,7 @@ Each bite check is a scratch edit, a run whose output shows the expected failure
 
 ## 7. CI and Dependabot
 
-- [ ] 7.1 Add `.github/workflows/build.yml` as in design.md "CI and Dependabot". First confirm the current Windows runner label and the `actions/setup-dotnet` major version. Push the branch and verify the job is green.
+- [x] 7.1 Add `.github/workflows/build.yml` as in design.md "CI and Dependabot". First confirm the current Windows runner label and the `actions/setup-dotnet` major version. Push the branch and verify the job is green.
 - [ ] 7.2 Bite check: push a commit with a failing architecture test (subject passes `scripts/lint-commits`) and show the job red, then push its revert and show it green.
 - [x] 7.3 Add the `nuget` entry to `.github/dependabot.yml` with `prefix: chore` and `include: scope`, and update its header comment. Verify the YAML parses, and that the schedule and commit-message block match the existing entry.
 - [x] 7.4 Update `testing.md` Enforcement (CI runs every test project on each push and pull request) and `CLAUDE.md` (the build workflow, beside the existing commit workflows). Verify both name `.github/workflows/build.yml`.

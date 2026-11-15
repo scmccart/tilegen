@@ -73,8 +73,8 @@ Each bite check is a scratch edit, a run whose output shows the expected failure
 
 ## 8. Integration check
 
-- [ ] 8.1 From a clean clone of the branch (`core.symlinks` on), run `dotnet build` and `dotnet test`. Verify 0 warnings, every test project passing, and every `.claude/skills/openspec-*` entry a symlink.
-- [ ] 8.2 Read every Enforcement section, every "Enforced by" line and `CLAUDE.md` against what was built. Verify each rule is listed as enforced (by what), as reviewed, or as deferred with its reason, and that nothing still describes the scaffold as future work.
+- [x] 8.1 From a clean clone of the branch (`core.symlinks` on), run `dotnet build` and `dotnet test`. Verify 0 warnings, every test project passing, and every `.claude/skills/openspec-*` entry a symlink. Done without a local clone: CI's fresh Windows checkout of the final commit runs the build and tests, and a clone of the branch showed all six `openspec-*` entries as symlinks. The local clone's build ran out of disk.
+- [x] 8.2 Read every Enforcement section, every "Enforced by" line and `CLAUDE.md` against what was built. Verify each rule is listed as enforced (by what), as reviewed, or as deferred with its reason, and that nothing still describes the scaffold as future work.
 
 ## Workflow follow-up
 

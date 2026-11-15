@@ -28,15 +28,15 @@ public class PreviewTests
     }
 
     [Fact]
-    public void Update_advances_the_run_one_step_and_then_playback()
+    public void Update_advances_the_run_and_then_playback()
     {
         var preview = new Preview(Validated(Noise("a", octaves: 4)), new RunSeed(1));
-        preview.Update(TimeSpan.Zero);
-        preview.Update(TimeSpan.Zero);
+        preview.Update(Interval);
+        preview.Update(Interval);
         preview.Apply(PlaybackCommand.First);
         preview.Apply(PlaybackCommand.Play);
 
-        // Playing(0) on two frames. Stepping the run first makes three, so one interval moves
+        // Playing(0) on two frames. A step of the run first makes three, so one interval moves
         // playback to the middle frame. Advancing playback first would reach the last of two
         // frames and follow the latest instead.
         preview.Update(Interval);
@@ -49,13 +49,13 @@ public class PreviewTests
     [Fact]
     public void Update_on_a_completed_run_only_advances_playback()
     {
-        // Updates until the run has ended, within a limit so a bug can't hang the test. A 3-octave
-        // stage completes on its fourth update.
+        // Updates of one interval until the run has ended, within a limit so a bug can't hang the
+        // test. A 3-octave stage completes on its fourth update.
         var preview = new Preview(Validated(Noise("a", octaves: 3)), new RunSeed(1));
         var updatesToEnd = 0;
         while (updatesToEnd < 1000 && preview.Run.State is Running)
         {
-            preview.Update(TimeSpan.Zero);
+            preview.Update(Interval);
             updatesToEnd++;
         }
 
@@ -71,11 +71,89 @@ public class PreviewTests
     }
 
     [Fact]
+    public void An_update_shorter_than_an_interval_adds_no_frame()
+    {
+        var preview = new Preview(Validated(Noise("a", octaves: 4)), new RunSeed(1));
+
+        preview.Update(Interval - TimeSpan.FromTicks(1));
+
+        Assert.Equal(0, preview.Run.Timeline.Count);
+        Assert.Equal(new NoFrame(), preview.Shown);
+    }
+
+    [Fact]
+    public void Updates_totalling_two_and_a_half_intervals_add_two_frames_and_another_half_interval_adds_the_third()
+    {
+        var preview = new Preview(Validated(Noise("a", octaves: 4)), new RunSeed(1));
+        var half = Interval / 2;
+
+        preview.Update(half);
+        preview.Update(Interval);
+        preview.Update(Interval);
+        var framesAfterTwoAndAHalf = preview.Run.Timeline.Count;
+        preview.Update(half);
+
+        Assert.Equal(2, framesAfterTwoAndAHalf);
+        Assert.Equal(3, preview.Run.Timeline.Count);
+    }
+
+    [Fact]
+    public void One_long_update_takes_every_step_it_is_owed()
+    {
+        var preview = new Preview(Validated(Noise("a", octaves: 4)), new RunSeed(1));
+
+        preview.Update(Interval * 3);
+
+        Assert.Equal(3, preview.Run.Timeline.Count);
+    }
+
+    [Fact]
+    public void After_restart_the_carry_from_the_old_run_does_not_count_toward_the_new_runs_first_step()
+    {
+        var preview = new Preview(Validated(Noise("a", octaves: 4)), new RunSeed(1));
+        preview.Update(Interval / 2);
+
+        preview.Restart();
+        preview.Update(Interval / 2);
+
+        Assert.Equal(0, preview.Run.Timeline.Count);
+    }
+
+    [Fact]
+    public void After_next_seed_the_carry_from_the_old_run_does_not_count_toward_the_new_runs_first_step()
+    {
+        var preview = new Preview(Validated(Noise("a", octaves: 4)), new RunSeed(1));
+        preview.Update(Interval / 2);
+
+        preview.NextSeed();
+        preview.Update(Interval / 2);
+
+        Assert.Equal(0, preview.Run.Timeline.Count);
+    }
+
+    [Fact]
+    public void Playback_advances_by_the_whole_update_after_the_runs_steps_in_the_same_update()
+    {
+        var preview = new Preview(Validated(Noise("a", octaves: 4)), new RunSeed(1));
+        preview.Update(Interval);
+        preview.Update(Interval);
+        preview.Apply(PlaybackCommand.First);
+        preview.Apply(PlaybackCommand.Play);
+
+        // Two intervals: the run adds two frames (four in all), and playback, over those four,
+        // moves two frames on to index 2 rather than following the latest.
+        preview.Update(Interval * 2);
+
+        Assert.Equal(4, preview.Run.Timeline.Count);
+        Assert.Equal(new Playing(2, TimeSpan.Zero), preview.Playback);
+    }
+
+    [Fact]
     public void Restart_stops_the_run_and_starts_an_empty_one_with_the_same_seed_following_the_latest_frame()
     {
         var preview = new Preview(Validated(Noise("a", octaves: 3)), new RunSeed(7));
-        preview.Update(TimeSpan.Zero);
-        preview.Update(TimeSpan.Zero);
+        preview.Update(Interval);
+        preview.Update(Interval);
         preview.Apply(PlaybackCommand.Pause);
         var before = preview.Run;
 
@@ -94,7 +172,7 @@ public class PreviewTests
     {
         var seed = new RunSeed(int.MaxValue);
         var preview = new Preview(Validated(Noise("a", octaves: 3)), seed);
-        preview.Update(TimeSpan.Zero);
+        preview.Update(Interval);
         preview.Apply(PlaybackCommand.Pause);
         var before = preview.Run;
 
@@ -115,7 +193,7 @@ public class PreviewTests
         var preview = new Preview(Validated(Noise("a", octaves: 4)), new RunSeed(1));
         for (var update = 0; update < 3; update++)
         {
-            preview.Update(TimeSpan.Zero);
+            preview.Update(Interval);
         }
 
         preview.Apply(PlaybackCommand.StepBack);

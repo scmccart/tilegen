@@ -13,6 +13,9 @@ public sealed class Preview
 {
     private readonly ValidatedPipeline _pipeline;
 
+    /// <summary>Time since the run's last step, from zero up to, but not including, one frame interval.</summary>
+    private TimeSpan _paceCarry = TimeSpan.Zero;
+
     /// <summary>Starts a run of <paramref name="pipeline"/> with <paramref name="seed"/>, following the latest frame.</summary>
     public Preview(ValidatedPipeline pipeline, RunSeed seed)
     {
@@ -29,13 +32,21 @@ public sealed class Preview
     public ShownFrame Shown => PlaybackRules.Shown(Playback, Run.Timeline.Count);
 
     /// <summary>
-    /// Advances the run by exactly one step, so each new frame is shown for at least one update,
-    /// and then advances playback by <paramref name="elapsed"/> over the timeline that step left.
-    /// A completed or stopped run doesn't change, so then only playback moves.
+    /// Advances the run once for each step <see cref="Pacing.Steps"/> says <paramref name="elapsed"/>
+    /// is worth, keeping the leftover time for the next update, and then advances playback by
+    /// <paramref name="elapsed"/> over the timeline those steps left. So generating moves at the
+    /// replay's rate, one frame per <see cref="Playback.FrameInterval"/>. A completed or stopped run
+    /// doesn't change, so then only playback moves.
     /// </summary>
     public void Update(TimeSpan elapsed)
     {
-        Run.Advance();
+        var paced = Pacing.Steps(_paceCarry, elapsed);
+        _paceCarry = paced.Carry;
+        for (var step = 0; step < paced.Steps; step++)
+        {
+            Run.Advance();
+        }
+
         Playback = PlaybackRules.Advance(Playback, elapsed, Run.Timeline.Count);
     }
 
@@ -49,11 +60,12 @@ public sealed class Preview
     /// <summary>Stops the run and starts a new one with the next seed (<see cref="RunSeed.Next"/>), following the latest frame.</summary>
     public void NextSeed() => Begin(Run.Seed.Next());
 
-    /// <summary>A new run starts with a new, empty timeline, so playback starts again too.</summary>
+    /// <summary>A new run starts with a new, empty timeline, so playback and the pacing carry start again too.</summary>
     private void Begin(RunSeed seed)
     {
         Run.Stop();
         Run = GenerationRun.Start(_pipeline, seed);
         Playback = new FollowingLatest();
+        _paceCarry = TimeSpan.Zero;
     }
 }

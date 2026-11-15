@@ -6,10 +6,10 @@ tilegen is a personal desktop tool and testbench for procedurally generating gam
 
 ## Build and test
 
-There is no solution yet. The first OpenSpec change scaffolds it, and that change writes the real build and test commands into this section.
+The solution is `tilegen.slnx`. Build everything from the repo root with `dotnet build`; warnings are errors, so a clean build has none. The test command arrives with the test projects.
 
 - **The target is .NET 11, not .NET 10.** The architecture relies on C# 15 `closed` hierarchies and `union` types, so the compiler reports every switch that misses a case. Don't lower the target to make a package or tool happy; raise it as a design issue.
-- **Package versions are pinned in the scaffold change.** MonoGame 3.8.6 and Apos.Gui 3.1 were current when the stack was chosen (November 2026).
+- **Package versions are pinned in `Directory.Packages.props`** (central package management; project files carry no versions). MonoGame 3.8.6 and Apos.Gui 3.1 were current when the stack was chosen (November 2026).
 - **Apos.Gui needs the HiDef graphics profile,** because its Apos.Shapes dependency does. Its shaders ship precompiled inside the assembly, so there is no shader build step.
 - **Every text file is LF, on every platform** (`.gitattributes`; batch files are the one CRLF exception). The scaffold's `.editorconfig` must set `end_of_line = lf` so editors and `dotnet format` agree with it.
 - `scripts/lint-commits` checks commit messages; see Commit messages below.
@@ -51,7 +51,7 @@ The rules agents break most:
 - No interface exists for logic. Ports are for platform things only: compiling definitions, writing files.
 - Expected failures are closed outcome types, switched over with no discard arm. Exceptions are for bugs.
 
-These projects are planned names; none exists yet, so no rule is enforced by the build yet. `docs/architecture/README.md` lists what the scaffold change must put in place.
+Core, Engine, Scripting.CSharp and Export exist under `src/` (Desktop is still to come), and all the names are final. Their references follow the dependency rule, and checks that enforce it are being put in place; each architecture doc's Enforcement section and `docs/architecture/README.md` say which are in place.
 
 ## How work happens
 

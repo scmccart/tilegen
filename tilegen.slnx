@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Tilegen.Core/Tilegen.Core.csproj" />
+    <Project Path="src/Tilegen.Engine/Tilegen.Engine.csproj" />
+    <Project Path="src/Tilegen.Export/Tilegen.Export.csproj" />
+    <Project Path="src/Tilegen.Scripting.CSharp/Tilegen.Scripting.CSharp.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+</Solution>

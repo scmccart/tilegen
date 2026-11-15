@@ -71,12 +71,12 @@ public readonly record struct PixelCoord(int X, int Y);
 
 ## Enforcement
 
-Planned; the scaffold change puts these in place.
-
-- **The compiler:** `closed` and `union` make a missing case an error once CS8509 is an error in `.editorconfig`. Covers R1 and R5.
+- **The compiler:** CS8509 is an error in `.editorconfig`, whatever `TreatWarningsAsErrors` says. A switch *expression* that misses a case of a `closed` type, a `union` or a named enum member fails the build. Covers R1 and R5 for switch expressions.
+  - Switch *statements* are not checked by the compiler. IDE0010 can't fill the gap: it also flags complete switch statements and wants a `default`. A switch statement over a closed type or union stays with review, so write a switch expression where you can.
+  - CS8524 is silenced (owner decision, 2026-11-14). With it on, a switch expression that handles every named enum member still fails, and only a discard arm fixes it, which R5 forbids. With it off, a missing named member still fails with CS8509. An out-of-range enum value throws at run time, which is a bug.
 - **Constructors:** hidden constructors and factories make R3 and R8 structural.
-- **Architecture tests:** the export adapter's wire types are not referenced from Core or Engine. Covers R14.
-- **Review alone:** R2 (until an analyzer or test checks description types), R4, R6, R7, R9 to R13.
+- **Architecture tests:** planned (scaffold change). The export adapter's wire types are not referenced from Core or Engine. Covers R14.
+- **Review alone:** R2 (until an analyzer or test checks description types), R4, R6, R7, R9 to R13, and R5 for switch statements.
 
 ## PR checklist
 

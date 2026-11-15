@@ -2,7 +2,7 @@
 
 These are the normative architecture docs for tilegen, a desktop testbench that procedurally generates game tilesets. "Normative" means code review enforces each doc's **Rules** section, and reviewers cite rule numbers from these files (`functional-core R3`).
 
-The docs were adopted before any code existed. Project and type names below are planned names: the scaffold change may rename them, but it must keep the dependency rule and the rule numbers.
+The docs were adopted before any code existed. The project names below are final; type names in the illustrative code are not.
 
 ## Dependency rule
 

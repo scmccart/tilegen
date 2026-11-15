@@ -81,6 +81,16 @@ public class PipelineValidationTests
     }
 
     [Fact]
+    public void A_validated_stage_gives_its_id_without_a_switch_over_its_technique()
+    {
+        var pipeline = PipelineOf(Describe(Stage("height")));
+
+        Stage stage = Assert.Single(pipeline.Stages);
+
+        Assert.Equal(StageId.Create("height"), stage.Id);
+    }
+
+    [Fact]
     public void A_zero_octave_count_gives_findings_and_no_pipeline()
     {
         var outcome = Pipeline.Validate(Describe(Stage(octaves: 0)));

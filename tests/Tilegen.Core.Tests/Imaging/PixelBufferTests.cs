@@ -111,6 +111,52 @@ public class PixelBufferTests
     }
 
     [Fact]
+    public void Copying_to_a_span_writes_the_pixels_in_row_major_order()
+    {
+        var buffer = new PixelBuffer(3, 2);
+        for (var y = 0; y < buffer.Height; y++)
+        {
+            for (var x = 0; x < buffer.Width; x++)
+            {
+                buffer[x, y] = new Rgba32((byte)x, (byte)y, 0, 255);
+            }
+        }
+
+        var destination = new Rgba32[6];
+        buffer.CopyTo(destination);
+
+        Assert.Equal(
+            [
+                new Rgba32(0, 0, 0, 255), new Rgba32(1, 0, 0, 255), new Rgba32(2, 0, 0, 255),
+                new Rgba32(0, 1, 0, 255), new Rgba32(1, 1, 0, 255), new Rgba32(2, 1, 0, 255),
+            ],
+            destination);
+    }
+
+    [Fact]
+    public void Copying_to_a_span_shorter_than_the_buffer_throws()
+    {
+        var buffer = new PixelBuffer(3, 2);
+        var destination = new Rgba32[5];
+
+        Assert.Throws<ArgumentException>(() => buffer.CopyTo(destination));
+    }
+
+    [Fact]
+    public void Copying_to_a_longer_span_writes_only_its_prefix()
+    {
+        var buffer = new PixelBuffer(2, 1);
+        buffer[0, 0] = new Rgba32(1, 1, 1, 255);
+        buffer[1, 0] = new Rgba32(2, 2, 2, 255);
+        var untouched = new Rgba32(9, 9, 9, 9);
+        var destination = new[] { untouched, untouched, untouched };
+
+        buffer.CopyTo(destination);
+
+        Assert.Equal([new Rgba32(1, 1, 1, 255), new Rgba32(2, 2, 2, 255), untouched], destination);
+    }
+
+    [Fact]
     public void An_opaque_pixel_has_full_alpha()
     {
         Assert.Equal(new Rgba32(5, 6, 7, 255), Rgba32.Opaque(5, 6, 7));

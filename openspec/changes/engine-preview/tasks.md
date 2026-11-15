@@ -7,37 +7,37 @@ Unless a task says otherwise, every task is verified by:
 
 ## 1. Shared contracts (Core)
 
-- [ ] 1.1 Move the stage id to the base record (design D1).
+- [x] 1.1 Move the stage id to the base record (design D1).
   - Make it `closed record class Stage(StageId Id)`, with `Noise(StageId Id, NoiseParameters Parameters) : Stage(Id)`.
   - Update `Pipeline.Validate` and any test that builds a `Noise`.
   - Verify that the existing validation and generation tests pass unchanged in what they assert, and that a test reads `Id` through a `Stage`-typed reference.
-- [ ] 1.2 Add `PixelBuffer.CopyTo(Span<Rgba32>)` and `Frame.CopyTo(Span<Rgba32>)` (design D6). Both copy the pixels in row-major order and throw `ArgumentException` when the span is shorter than width × height. A longer span is allowed, and only its prefix is written. Verify with tests in `Tilegen.Core.Tests/Imaging/`:
+- [x] 1.2 Add `PixelBuffer.CopyTo(Span<Rgba32>)` and `Frame.CopyTo(Span<Rgba32>)` (design D6). Both copy the pixels in row-major order and throw `ArgumentException` when the span is shorter than width × height. A longer span is allowed, and only its prefix is written. Verify with tests in `Tilegen.Core.Tests/Imaging/`:
   - the pixels arrive in row-major order;
   - a short span throws;
   - a frame's copy equals its `ToBuffer()`.
-- [ ] 1.3 Add `RunSeed.Next()`: `unchecked(Value + 1)`, wrapping (design D8). Verify with tests for an ordinary value, for `-1` to `0`, and for `int.MaxValue` to `int.MinValue`.
+- [x] 1.3 Add `RunSeed.Next()`: `unchecked(Value + 1)`, wrapping (design D8). Verify with tests for an ordinary value, for `-1` to `0`, and for `int.MaxValue` to `int.MinValue`.
 
 ## 2. Frame playback (Core)
 
-- [ ] 2.1 Add the playback types under `Tilegen.Core.Replay` (design D4; tests go in `Tilegen.Core.Tests/Replay/`, not a `Playback` folder, so the type name doesn't clash with a namespace):
+- [x] 2.1 Add the playback types under `Tilegen.Core.Replay` (design D4; tests go in `Tilegen.Core.Tests/Replay/`, not a `Playback` folder, so the type name doesn't clash with a namespace):
   - the closed `Playback` with `FollowingLatest`, `Paused(int Index)` and `Playing(int Index, TimeSpan Carry)`;
   - `Playback.FrameInterval` (250 ms);
   - the `PlaybackCommand` enum;
   - the closed `ShownFrame` with `NoFrame` and `FrameAt(int Index)`.
 
   `Paused` and `Playing` throw on a negative index. `Playing` throws on a carry outside [0, FrameInterval). Verify that a switch expression over each closed type compiles with no discard arm, and that the constructor checks throw.
-- [ ] 2.2 Implement `Shown`, `Apply` and `Advance` as pure static functions (design D4's table and rules). Throw when a passed-in index is at or past `frameCount`, checked before anything else. Verify with:
+- [x] 2.2 Implement `Shown`, `Apply` and `Advance` as pure static functions (design D4's table and rules). Throw when a passed-in index is at or past `frameCount`, checked before anything else. Verify with:
   - one test per scenario in `specs/frame-playback/spec.md`;
   - one test per cell of D4's transition table, including the empty-timeline row;
   - names by behaviour (`testing R18`).
-- [ ] 2.3 Add CsCheck properties. Each generated case reaches its playback through a sequence of commands and advances from `FollowingLatest`, over a frame count that only grows (0 to 50), with generated commands and elapsed times, because that is how playback is reached in a run (design D4, precedence). Check that:
+- [x] 2.3 Add CsCheck properties. Each generated case reaches its playback through a sequence of commands and advances from `FollowingLatest`, over a frame count that only grows (0 to 50), with generated commands and elapsed times, because that is how playback is reached in a run (design D4, precedence). Check that:
   - the shown frame is `NoFrame` exactly when the count is 0, and is otherwise in range;
   - splitting an elapsed total into any number of updates gives the same playback as one update;
   - any command on an empty timeline gives `FollowingLatest`;
   - `Advance` with zero elapsed time changes nothing.
 
   Verify that the properties pass.
-- [ ] 2.4 Create `docs/design/timeline-and-playback.md`, following `docs/design/README.md`. Write its playback half: the modes, the transition table, the interval and the carry, following the latest frame, and where it lives and its tests. Leave headed placeholders for the run and the timeline, which group 3 fills in. Verify by reading it against 2.1 and 2.2 as built.
+- [x] 2.4 Create `docs/design/timeline-and-playback.md`, following `docs/design/README.md`. Write its playback half: the modes, the transition table, the interval and the carry, following the latest frame, and where it lives and its tests. Leave headed placeholders for the run and the timeline, which group 3 fills in. Verify by reading it against 2.1 and 2.2 as built.
 
 ## 3. Generation runs and the timeline (Engine)
 

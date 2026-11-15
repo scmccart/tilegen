@@ -4,16 +4,16 @@ Every task's verification includes `dotnet build` with 0 warnings and `dotnet te
 
 ## 1. Shared contracts (Core)
 
-- [ ] 1.1 Add `Rgba32`, `PixelBuffer` and `Frame` to Core (design D6). Width and height must be at least 1. Pixels are stored row-major. `Frame` is a read-only view with `ToBuffer()`. Verify with value tests in `Tilegen.Core.Tests`: construction limits, get and set, a copy independent of its source, and a `ToBuffer()` copy unaffected by later writes to the buffer.
-- [ ] 1.2 Add the typed wrappers `StageId`, `PixelSize`, `Octaves`, `CellSize`, `Persistence` and `NoiseParameters` (design D2). Each has an internal constructor, a public throwing factory, and its range as constants. `NoiseParameters` enforces cell size ≥ 2^(octaves − 1). Verify with tests at each edge of each range, through the throwing factories.
-- [ ] 1.3 Add the description and validated shapes (design D1, D3):
+- [x] 1.1 Add `Rgba32`, `PixelBuffer` and `Frame` to Core (design D6). Width and height must be at least 1. Pixels are stored row-major. `Frame` is a read-only view with `ToBuffer()`. Verify with value tests in `Tilegen.Core.Tests`: construction limits, get and set, a copy independent of its source, and a `ToBuffer()` copy unaffected by later writes to the buffer.
+- [x] 1.2 Add the typed wrappers `StageId`, `PixelSize`, `Octaves`, `CellSize`, `Persistence` and `NoiseParameters` (design D2). Each has an internal constructor, a public throwing factory, and its range as constants. `NoiseParameters` enforces cell size ≥ 2^(octaves − 1). Verify with tests at each edge of each range, through the throwing factories.
+- [x] 1.3 Add the description and validated shapes (design D1, D3):
   - the closed `StageDescription` with `NoiseDescription`, and `PipelineDescription`;
   - the closed `Stage` with `Noise`, and `ValidatedPipeline` with no public constructor;
   - the closed `ValidationOutcome` (`Valid`, and `Invalid`, which refuses an empty list);
   - the closed `Finding` cases, `StageRef`, `Parameter` and `ParameterRange`.
 
   Verify that a switch expression over each closed type compiles with no discard arm, and that a test shows `Invalid` refuses an empty list.
-- [ ] 1.4 Delete `CoreMarker`:
+- [x] 1.4 Delete `CoreMarker`:
   - point `tests/Tilegen.ArchitectureTests/Layers.cs` and `EngineMarker` at `PixelBuffer`;
   - replace Core.Tests' placeholder test with the tests above.
 

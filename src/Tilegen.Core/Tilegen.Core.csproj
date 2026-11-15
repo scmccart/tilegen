@@ -7,6 +7,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Tests build Invalid and ValidatedPipeline, whose constructors are internal by design. -->
+    <InternalsVisibleTo Include="Tilegen.Core.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" />
     <AdditionalFiles Include="BannedSymbols.txt" />
   </ItemGroup>

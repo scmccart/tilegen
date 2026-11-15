@@ -6,5 +6,5 @@ namespace Tilegen.Engine;
 /// </summary>
 public static class EngineMarker
 {
-    public static Type Inner => typeof(Tilegen.Core.CoreMarker);
+    public static Type Inner => typeof(Tilegen.Core.Imaging.PixelBuffer);
 }

@@ -1,5 +1,5 @@
 using System.Reflection;
-using Tilegen.Core;
+using Tilegen.Core.Imaging;
 using Tilegen.Engine;
 using Tilegen.Export;
 using Tilegen.Scripting.CSharp;
@@ -20,7 +20,7 @@ internal static class Layers
 
     private static readonly IReadOnlyDictionary<string, Assembly> ByName = new Dictionary<string, Assembly>
     {
-        [Core] = typeof(CoreMarker).Assembly,
+        [Core] = typeof(PixelBuffer).Assembly,
         [Engine] = typeof(EngineMarker).Assembly,
         [ScriptingCSharp] = typeof(ScriptingMarker).Assembly,
         [Export] = typeof(ExportMarker).Assembly,

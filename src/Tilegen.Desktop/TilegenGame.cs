@@ -44,6 +44,9 @@ public sealed class TilegenGame : Game
     // switched over, and only read after that (design D7).
     private Preview? _preview;
 
+    // Set only when TILEGEN_SCREENSHOT asks for a screenshot (see Screenshot).
+    private readonly Screenshot? _screenshot = Screenshot.FromEnvironment();
+
     public TilegenGame()
     {
         // Apos.Shapes needs the HiDef profile.
@@ -114,6 +117,11 @@ public sealed class TilegenGame : Game
             content();
 
             loaded.Ui.Draw(gameTime);
+        }
+
+        if (_screenshot?.TrySave(GraphicsDevice, gameTime) == true)
+        {
+            Exit();
         }
 
         base.Draw(gameTime);

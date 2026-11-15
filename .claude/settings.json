@@ -1,6 +1,14 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(gh pr *)",
+      "PowerShell(gh pr *)"
+    ]
+  },
   "enabledPlugins": {
     "repo-setup@scmccart-plugins": true,
-    "architecture@scmccart-plugins": true
+    "architecture@scmccart-plugins": true,
+    "dotnet-diag@dotnet-agent-skills": true,
+    "dotnet11@dotnet-agent-skills": true
   }
 }

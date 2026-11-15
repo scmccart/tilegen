@@ -45,6 +45,32 @@ public class FrameTests
     }
 
     [Fact]
+    public void A_frame_copied_to_a_span_matches_its_kept_copy_in_row_major_order()
+    {
+        var buffer = new PixelBuffer(2, 2);
+        buffer[0, 0] = new Rgba32(1, 0, 0, 255);
+        buffer[1, 0] = new Rgba32(2, 0, 0, 255);
+        buffer[0, 1] = new Rgba32(3, 0, 0, 255);
+        buffer[1, 1] = new Rgba32(4, 0, 0, 255);
+        var frame = new Frame(buffer);
+
+        var destination = new Rgba32[4];
+        frame.CopyTo(destination);
+
+        var kept = frame.ToBuffer();
+        Assert.Equal([kept[0, 0], kept[1, 0], kept[0, 1], kept[1, 1]], destination);
+    }
+
+    [Fact]
+    public void A_frame_copied_to_a_span_shorter_than_the_frame_throws()
+    {
+        var frame = new Frame(new PixelBuffer(2, 2));
+        var destination = new Rgba32[3];
+
+        Assert.Throws<ArgumentException>(() => frame.CopyTo(destination));
+    }
+
+    [Fact]
     public void A_kept_copy_can_be_written_without_changing_the_frame()
     {
         var buffer = new PixelBuffer(1, 1);

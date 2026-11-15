@@ -6,5 +6,5 @@ namespace Tilegen.Export;
 /// </summary>
 public static class ExportMarker
 {
-    public static Type Inner => typeof(Tilegen.Engine.EngineMarker);
+    public static Type Inner => typeof(Tilegen.Engine.GenerationRun);
 }

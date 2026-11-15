@@ -23,4 +23,11 @@ public sealed class Frame
 
     /// <summary>An independent copy of the frame's pixels as they are now.</summary>
     public PixelBuffer ToBuffer() => _buffer.Copy();
+
+    /// <summary>
+    /// Copies the frame's pixels as they are now into <paramref name="destination"/>, in row-major
+    /// order. See <see cref="PixelBuffer.CopyTo"/>.
+    /// </summary>
+    /// <exception cref="ArgumentException"><paramref name="destination"/> is shorter than width × height.</exception>
+    public void CopyTo(Span<Rgba32> destination) => _buffer.CopyTo(destination);
 }

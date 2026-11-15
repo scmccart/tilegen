@@ -15,7 +15,7 @@ Each kind of test answers one question and has its own place.
 | Value tests on Core | Does this function compute the right thing? | `tests/Tilegen.Core.Tests`, no fakes |
 | Goldens | Does this technique still produce the approved image? | Core tests, data beside them |
 | Property tests | Does an invariant hold for all inputs? | Core tests |
-| Engine tests | Does the engine step, record and reload correctly? | `tests/Tilegen.Engine.Tests`, with fake ports |
+| Engine tests | Does the engine step, record and reload correctly? | `tests/Tilegen.Engine.Tests`, with fake ports once ports exist (none do yet, so these tests use real Core values) |
 | Adapter integration tests | Does a real definition compile? Does a written tileset parse back? | One test project per adapter, against real Roslyn and temp directories |
 | Architecture tests | Do references still point the right way? | `tests/Tilegen.ArchitectureTests` |
 | Manual checks | Does the UI behave? Does Tiled's terrain brush paint correct transitions? | By hand, recorded in the PR |

@@ -38,6 +38,25 @@ public sealed class PixelBuffer
     /// <summary>A new buffer with the same size and pixels, sharing nothing with this one.</summary>
     public PixelBuffer Copy() => new(Width, Height, (Rgba32[])_pixels.Clone());
 
+    /// <summary>
+    /// Copies the pixels into <paramref name="destination"/> in row-major order, for a bulk read
+    /// such as a texture upload. A longer span is allowed, and only its first width × height
+    /// elements are written. The buffer hands out no span over its own pixels, so it stays their
+    /// only writer.
+    /// </summary>
+    /// <exception cref="ArgumentException"><paramref name="destination"/> is shorter than width × height.</exception>
+    public void CopyTo(Span<Rgba32> destination)
+    {
+        if (destination.Length < _pixels.Length)
+        {
+            throw new ArgumentException(
+                $"The destination holds {destination.Length} pixels; the buffer has {_pixels.Length}.",
+                nameof(destination));
+        }
+
+        _pixels.AsSpan().CopyTo(destination);
+    }
+
     private int IndexOf(int x, int y)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(x);

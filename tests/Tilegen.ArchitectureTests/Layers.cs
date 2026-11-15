@@ -21,7 +21,7 @@ internal static class Layers
     private static readonly IReadOnlyDictionary<string, Assembly> ByName = new Dictionary<string, Assembly>
     {
         [Core] = typeof(PixelBuffer).Assembly,
-        [Engine] = typeof(EngineMarker).Assembly,
+        [Engine] = typeof(GenerationRun).Assembly,
         [ScriptingCSharp] = typeof(ScriptingMarker).Assembly,
         [Export] = typeof(ExportMarker).Assembly,
         [Desktop] = typeof(Tilegen.Desktop.Program).Assembly,

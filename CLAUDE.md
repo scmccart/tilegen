@@ -15,6 +15,7 @@ The solution is `tilegen.slnx`. Build everything from the repo root with `dotnet
 - **Package versions are pinned in `Directory.Packages.props`** (central package management; project files carry no versions). MonoGame 3.8.6 and Apos.Gui 3.1 were current when the stack was chosen (November 2026).
 - **Apos.Gui needs the HiDef graphics profile,** because its Apos.Shapes dependency does. Its shaders ship precompiled inside the assembly, so there is no shader build step.
 - **Every text file is LF, on every platform** (`.gitattributes`; batch files are the one CRLF exception). `.editorconfig` sets `end_of_line = lf` so editors and `dotnet format` agree with `.gitattributes`.
+- **To see the window without looking at it** (an agent, or a locked screen), set `TILEGEN_SCREENSHOT` to a PNG path, and optionally `TILEGEN_SCREENSHOT_AT` to seconds of game time (default 3). The app saves its back buffer there at that time and exits (`src/Tilegen.Desktop/Screenshot.cs`). It captures the game's own rendering, so it works when a desktop capture would show only the lock screen. To check an invalid description, edit `BuiltInPipeline.cs` temporarily and revert it afterwards.
 - `scripts/lint-commits` checks commit messages; see Commit messages below.
 
 ## Conventions

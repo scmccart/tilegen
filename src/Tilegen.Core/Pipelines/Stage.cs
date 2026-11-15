@@ -3,10 +3,13 @@ using Tilegen.Core.Techniques;
 
 namespace Tilegen.Core.Pipelines;
 
-/// <summary>A stage whose id and parameters have been checked. One sealed case per technique.</summary>
-public closed record class Stage;
+/// <summary>
+/// A stage whose id and parameters have been checked. One sealed case per technique. Every stage
+/// has an id, so it is on the base record and the engine reads it without a switch of its own.
+/// </summary>
+public closed record class Stage(StageId Id);
 
-public sealed record class Noise(StageId Id, NoiseParameters Parameters) : Stage;
+public sealed record class Noise(StageId Id, NoiseParameters Parameters) : Stage(Id);
 
 /// <summary>
 /// A pipeline the engine may run. Only validation builds one (illegal-states R3), so it has no

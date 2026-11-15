@@ -92,7 +92,8 @@ foreach (var frame in Erode.Run(parameters, input, random))
 - **Core's implicit usings:** the `System.IO` and `System.Threading.Tasks` global usings are removed from Core, so `File`, `Directory` and `Task` are not in scope by default. A convenience, not a check.
 - **Architecture tests** in `tests/Tilegen.ArchitectureTests` (NetArchTest.Rules): Core depends on no `Tilegen.Engine`, `Tilegen.Scripting`, `Tilegen.Export` or `Tilegen.Desktop` namespace, and on no `Microsoft.Xna.Framework`, `MonoGame`, `Apos`, `Microsoft.CodeAnalysis` or `System.IO` namespace. Covers R7, and R6 in part: no outside type can reach Core, but an interface or callback that Core declares itself is review.
 - **Tests:** each technique has a determinism property (two runs, same seed, same pixels), which covers R8 in part (`testing R9`). Value noise has one, in `tests/Tilegen.Core.Tests/Techniques/ValueNoiseProperties.cs`. An inputs-unchanged check per technique will cover R4 in part. Value noise takes no input buffer, so there is nothing for it to check yet; it arrives with the first technique that takes an input.
-- **Review alone:** R2, R5, R6 in part, R9, R11 to R13, the stepwise parts of R4, `CancellationToken` or `Task` in a signature (R1, R10), and the rest of R1: environment variables, the console and static mutable state.
+  - Engine tests cover R9 in part: `A_stages_frames_match_its_technique_run_alone` and `Another_stage_does_not_change_a_stages_frames`, in `tests/Tilegen.Engine.Tests/GenerationRunScenarioTests.cs`, check that each stage draws from its own `Random`, seeded by `StageSeed.Derive`.
+- **Review alone:** R2, R5, R6 in part, the rest of R9 (that nothing else constructs or shares a `Random`), R11 to R13, the stepwise parts of R4, `CancellationToken` or `Task` in a signature (R1, R10), and the rest of R1: environment variables, the console and static mutable state.
 
 ## PR checklist
 

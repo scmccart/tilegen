@@ -33,12 +33,12 @@ Every task's verification includes `dotnet build` with 0 warnings and `dotnet te
 
 ## 3. Stage seeds (Core)
 
-- [ ] 3.1 Confirm on .NET 11 whether `new Random(s)` and `new Random(-s)` give the same sequence, with a scratch check that isn't committed. Report the result. If they don't, drop the mask from design D4 and the topic doc, and say so.
-- [ ] 3.2 Implement `RunSeed`, `StageSeed` and `StageSeed.Derive` as FNV-1a 64 over the little-endian run seed plus the UTF-8 id, folded and masked (design D4). Verify with:
+- [x] 3.1 Confirm on .NET 11 whether `new Random(s)` and `new Random(-s)` give the same sequence, with a scratch check that isn't committed. Report the result. If they don't, drop the mask from design D4 and the topic doc, and say so.
+- [x] 3.2 Implement `RunSeed`, `StageSeed` and `StageSeed.Derive` as FNV-1a 64 over the little-endian run seed plus the UTF-8 id, folded and masked (design D4). Verify with:
   - the hash core against FNV's published 64-bit FNV-1a test vectors (at least `""` and `"a"`);
   - a pinned table of at least five (run seed, id) → seed rows, including a negative run seed and a non-ASCII id;
   - each scenario in `specs/stage-seeding/spec.md`, including the culture scenario, restoring `CultureInfo.CurrentCulture` in a `finally`.
-- [ ] 3.3 Write `docs/design/stage-seeds.md` in the format of `docs/design/README.md` (design "Topic docs"). Its sources are the FNV specification and the test vectors. Verify that each claim in it matches 3.2's code and tests.
+- [x] 3.3 Write `docs/design/stage-seeds.md` in the format of `docs/design/README.md` (design "Topic docs"). Its sources are the FNV specification and the test vectors. Verify that each claim in it matches 3.2's code and tests.
 
 ## 4. Golden comparer (test kit)
 

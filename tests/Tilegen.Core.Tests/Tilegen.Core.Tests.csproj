@@ -14,4 +14,9 @@
     <ProjectReference Include="..\Tilegen.TestKit\Tilegen.TestKit.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Golden tests read each golden and its provenance from Goldens/ in the test output (design D7). -->
+    <None Update="Goldens\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

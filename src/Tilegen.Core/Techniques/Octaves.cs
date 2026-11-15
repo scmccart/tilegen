@@ -1,8 +1,8 @@
 namespace Tilegen.Core.Techniques;
 
 /// <summary>
-/// How many octaves a noise stage sums, from <see cref="Min"/> to <see cref="Max"/>. With cell
-/// size capped at 4096 and lacunarity 2, a 13th octave could never satisfy the finest-octave rule.
+/// How many octaves a noise stage sums, from <see cref="Min"/> to <see cref="Max"/>. With
+/// lacunarity 2, the finest-octave rule also needs a cell size of at least 2^(octaves - 1).
 /// </summary>
 public sealed record class Octaves
 {

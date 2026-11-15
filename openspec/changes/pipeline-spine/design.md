@@ -113,7 +113,7 @@ public readonly record struct ParameterRange(double Min, bool MinInclusive, doub
 - **`Parameter` is shared by all techniques.** With one technique, a per-technique enum would be speculation. It's split if it ever grows confusing.
 - **Ranges:**
   - width and height: 1 to 4096;
-  - octaves: 1 to 12 (with cell size capped at 4096, a 13th octave could never satisfy the finest-octave rule);
+  - octaves: 1 to 12. The cap is a choice, not forced: 13 octaves would still fit a cell size of 4096. A 12th octave already needs a cell size of at least 2048;
   - cell size: 1 to 4096;
   - persistence: (0, 1], and a non-finite value is out of range.
 
@@ -147,7 +147,7 @@ The run takes `NoiseParameters` and `Random`. For each octave k = 0 … n−1, i
 
 1. **Lattice.** Spacing is s = CellSize / 2^k, at least 1 by D2. Draw a lattice of `random.NextDouble()` values, row-major, sized ⌊(W−1)/s⌋+2 by ⌊(H−1)/s⌋+2. The draws happen at the start of the octave's own step, so the first frame of an n-octave run equals a 1-octave run's output: the spec scenario.
 2. **Sample and accumulate.** For pixel (x, y), take g = (x/s, y/s), its cell (i, j) = ⌊g⌋, and fractions t = g − ⌊g⌋. Blend the four corners bilinearly with smoothstep weights t²(3 − 2t). Add amplitude × value into a `double` accumulator. The amplitude starts at 1 and is multiplied by persistence each octave; repeated multiplication avoids `Math.Pow`.
-3. **Write the frame.** Normalise each accumulator cell by the running sum of amplitudes, giving [0, 1). Write grey `(byte)Math.Round(v × 255, MidpointRounding.AwayFromZero)` with alpha 255 into the working buffer. Yield it as a frame.
+3. **Write the frame.** Normalise each accumulator cell by the running sum of amplitudes, giving [0, 1]. No clamp is needed, because the lerp is written `a + (b − a)·w`. Write grey `(byte)Math.Round(v × 255, MidpointRounding.AwayFromZero)` with alpha 255 into the working buffer. Yield it as a frame.
 
 - **Buffers:** the working buffer and the accumulator are created by the run and never escape (`functional-core R12`). The run has no input buffer.
 - **Determinism:** only basic IEEE double operations in a fixed order, and lattice draws in a fixed order. No unordered collections (`functional-core R8`).
@@ -156,7 +156,7 @@ The run takes `NoiseParameters` and `Random`. For each octave k = 0 … n−1, i
 - **Sources:**
   - Ebert, Musgrave, Peachey, Perlin and Worley, *Texturing & Modeling: A Procedural Approach*, 3rd ed. (2003): lattice value noise, and Musgrave's fBm.
   - Scratchapixel, "Value Noise and Procedural Patterns".
-  - Inigo Quilez, "fbm", for octave summation and normalisation.
+  - Inigo Quilez, "fbm", for octave summation by repeated multiplication. It does not normalise; normalising by the amplitude sum is tilegen's own step.
   - The implementer checks each citation against the text and records it in the topic doc. No code is copied.
 
 ### D6. Frames
@@ -202,7 +202,7 @@ The run takes `NoiseParameters` and `Random`. For each octave k = 0 … n−1, i
 - **[`System.Random`'s seeded sequence could change in a future .NET]** → The golden's provenance records the runtime version, and the comparer's failure message prints both versions. Re-recording for an upgrade is a legitimate, owner-approved reason (`testing R7`).
 - **[Floating-point results differ across platforms]** → The promise is the same .NET version and platform only (`functional-core R8`). CI and the owner both use Windows.
 - **[StbImageWriteSharp hasn't been released since 2022]** → It's used only in tests, to write failure images. Losing it costs a debugging aid, not correctness. Export picks its encoder in its own change.
-- **[A 4096 × 4096 stage needs about 200 MB: a 64 MB buffer plus a 128 MB accumulator]** → It's within the ranges, but far beyond tile-sized use. If it matters, lower the maximum in a later change.
+- **[A 4096 × 4096 stage peaks at about 320 MiB: a 64 MiB buffer, a 128 MiB accumulator, and a lattice of up to 128 MiB when the spacing is 1]** → It's within the ranges, but far beyond tile-sized use. If it matters, lower the maximum in a later change.
 - **[The first golden blocks the task group until the owner looks at it]** → The group's tasks are ordered so everything else lands first. The owner is shown the image and approves before it's copied in.
 - **[`CultureInfo.CurrentCulture` in a test]** → It's async-local, so it doesn't leak into parallel tests. It's still restored in a `finally`.
 

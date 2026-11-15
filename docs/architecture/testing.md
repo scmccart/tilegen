@@ -27,7 +27,7 @@ There are no end-to-end or GUI tests and no performance suite. That is the owner
 - **Framework:** xUnit v3.
 - **Architecture tests** use NetArchTest.Rules.
 - **Property tests** use CsCheck, pinned in `Directory.Packages.props` and used by `Tilegen.Core.Tests`.
-- **A shared test kit** owns the fakes, golden loading and exact pixel comparison, so no test project writes its own. It is `tests/Tilegen.TestKit`. It holds the golden comparer, its PNG helpers and the provenance reader, and uses StbImageSharp and StbImageWriteSharp.
+- **A shared test kit** owns the fakes, golden loading and exact pixel comparison, so no test project writes its own. It is `tests/Tilegen.TestKit`. It holds the golden comparer, its PNG helpers, the provenance reader and exact pixel comparison of frames (`Pixels`), and uses StbImageSharp and StbImageWriteSharp.
 
 ## Rules
 

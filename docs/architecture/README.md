@@ -72,7 +72,7 @@ Not enforced:
 
 - **Switch statements.** CS8509 covers switch expressions only, and IDE0010 also flags complete switches. Review covers them.
 - **A banned type used only in a signature,** such as a `CancellationToken` parameter or a `Task` return. RS0030 doesn't see it; review does.
-- **Checks with nothing to check yet:** the determinism and inputs-unchanged tests wait for the first technique; the required Roslyn and PNG dependencies, and Engine's imaging-namespace rule, wait for those packages.
+- **Checks with nothing to check yet:** the inputs-unchanged test waits for the first technique that takes an input. Value noise, the first technique, takes none; its determinism property is in place (`functional-core.md`, Enforcement). The required Roslyn and PNG dependencies, and Engine's imaging-namespace rule, wait for those packages.
 
 Never leave a check disabled without recording it.
 

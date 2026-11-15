@@ -74,7 +74,7 @@ Unless a task says otherwise, every task is verified by:
 
 ## 5. The preview window (Desktop)
 
-- [ ] 5.1 Replace `SmokeGame` with `TilegenGame`, and update `Program` (design D7).
+- [x] 5.1 Replace `SmokeGame` with `TilegenGame`, and update `Program` (design D7).
   - Keep the HiDef profile and the font setup.
   - Allow resizing.
   - Add `BuiltInPipeline` with the description and starting seed from D7.
@@ -82,18 +82,37 @@ Unless a task says otherwise, every task is verified by:
   - Keep a commented `typeof(ScriptingMarker)` and `typeof(ExportMarker)` reference, naming the changes that remove each.
 
   Verify that the app launches with `dotnet run --project src/Tilegen.Desktop`, and that the architecture tests still pass, including Desktop's required dependencies on both adapters.
-- [ ] 5.2 Add the finding text: one Desktop function with one arm per `Finding` case and no discard arm (`railway R5`). Each line names the stage (index and given id) and what is wrong, with the range or the smallest valid cell size where the finding carries one. Show the lines in place of the frame when the outcome is `Invalid`. Verify by hand: temporarily give the built-in description an empty id and a width of −1, launch, see both lines, then revert the edit.
-- [ ] 5.3 Draw the shown frame (design D6):
+  - Checked: the build has 0 warnings and every test passes, the architecture tests' required rows for Desktop included. A smoke launch kept the process running and responding for 10 seconds, with no output. No manual check remains, beyond seeing the window open.
+- [x] 5.2 Add the finding text: one Desktop function with one arm per `Finding` case and no discard arm (`railway R5`). Each line names the stage (index and given id) and what is wrong, with the range or the smallest valid cell size where the finding carries one. Show the lines in place of the frame when the outcome is `Invalid`. Verify by hand: temporarily give the built-in description an empty id and a width of −1, launch, see both lines, then revert the edit.
+  - Checked:
+    - The build has 0 warnings and every test passes.
+    - With the temporary edit, a smoke launch kept the process running, with no output.
+    - `FindingText.Describe`, called by reflection on that build, gave both lines: `Stage at index 0 (""): the id is empty or contains whitespace.` and `Stage at index 0 (""): width is -1, but must be from 1 to 4096.`
+    - The edit is reverted, and the build gives `Valid` again.
+  - Left for the owner: repeat the temporary edit, launch, and see both lines beside the empty control column, in place of the frame. Then revert it.
+- [x] 5.3 Draw the shown frame (design D6):
   - upload with `CopyTo` into cached `Rgba32[]` and `Color[]` arrays, only when the (run, index) key changes;
   - draw with `SamplerState.PointClamp` and `BlendState.NonPremultiplied`;
   - scale by the largest whole factor of 1 or more that fits, centred in the area beside the controls.
 
   Switch over `ShownFrame` with no discard arm. Verify by hand that the frames are sharp and refit in whole-number steps on resize.
-- [ ] 5.4 Add the control column with Apos.Gui, rebuilt each frame from `Preview` (design D7). Confirm the component names against Apos.Gui 3.1 before writing.
+  - Checked: the build has 0 warnings and every test passes. A smoke launch ran the whole 10-frame run, uploading each frame, and kept the process running, with no output.
+  - Left for the owner: check by eye that the frame's pixels are sharp squares, that the frame stays centred beside the controls, and that it grows and shrinks in whole-number steps when the window is resized.
+- [x] 5.4 Add the control column with Apos.Gui, rebuilt each frame from `Preview` (design D7). Confirm the component names against Apos.Gui 3.1 before writing.
   - Labels: stage and step, timeline position, seed, run state, playback mode.
   - Buttons: play or pause (labelled from the `Playback` case), step back, step forward, first, latest, restart and next seed.
 
   Call `Preview.Update(gameTime.ElapsedGameTime)` once per `Update`. Verify by hand against each scenario in `specs/preview-window/spec.md`, and record the checks for the PR (`testing R2`).
+  - Checked:
+    - The components were confirmed against the Apos.Gui 3.1 assembly: `Dock`, `Vertical`, `Button` and `Label`.
+    - The build has 0 warnings, every test passes, and a final smoke launch kept the process running, with no output.
+    - In one launch, a temporary diagnostic, since removed, called `Preview.Apply`, `Restart` and `NextSeed` directly, the calls the buttons make. No button was clicked, so the click-to-command wiring has only been checked by reading.
+      - Play replayed from frame 1 and returned to following the latest frame.
+      - Stepping back crossed from `fine` step 1 to `coarse` step 4.
+      - Restart kept seed 1 and gave the same last frame.
+      - Next seed gave seed 2 and a different last frame.
+    - The column laid out at 275 × 668 within its 320-wide strip, at the starting 1280 × 800 window, without scrolling.
+  - Left for the owner: every scenario in `specs/preview-window/spec.md`, by hand in the window and clicking the buttons, recorded for the PR.
 
 ## 6. Integration
 

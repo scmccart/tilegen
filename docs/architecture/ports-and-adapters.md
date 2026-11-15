@@ -47,7 +47,7 @@ public interface ITilesetWriter
 
 `Apos.Gui` brings Apos.Shapes, Apos.Input, Apos.Tweens and MonoGame.Extended transitively; they stay in Desktop with it.
 
-Every package an inner layer may reference is listed in this table. Adding one is an architecture change: update the table in the same change. The allowlist in `tests/Tilegen.ArchitectureTests` (`DeclaredReferenceTests`) mirrors this table, so a new package updates both. The test kit (`tests/Tilegen.TestKit`) is not a layer and isn't in the table: the allowlist gives it Engine, and allows the banned-API analyzer as a private package in Core and under `tests/`.
+Every package an inner layer may reference is listed in this table. Adding one is an architecture change: update the table in the same change. The allowlist in `tests/Tilegen.ArchitectureTests` (`DeclaredReferenceTests`) mirrors this table, so a new package updates both. The test kit (`tests/Tilegen.TestKit`) is not a layer and isn't in the table: the allowlist gives it Engine, allows the banned-API analyzer as a private package in Core and under `tests/`, and also gives the test kit StbImageSharp and StbImageWriteSharp, which decode goldens and write failure images.
 
 ## Rules
 

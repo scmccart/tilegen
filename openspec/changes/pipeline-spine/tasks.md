@@ -42,15 +42,15 @@ Every task's verification includes `dotnet build` with 0 warnings and `dotnet te
 
 ## 4. Golden comparer (test kit)
 
-- [ ] 4.1 Add StbImageSharp 2.30.16 and StbImageWriteSharp 1.16.7 to `Directory.Packages.props` and `Tilegen.TestKit`. Add both to TestKit's row in `DeclaredReferenceTests`, and update the row's comment. Verify that the architecture tests pass. Then remove one package from the allowlist in a scratch edit, show `Project_declares_only_allowed_packages(Tilegen.TestKit)` failing, and revert.
-- [ ] 4.2 Implement the golden comparer and provenance reader (design D7):
+- [x] 4.1 Add StbImageSharp 2.30.16 and StbImageWriteSharp 1.16.7 to `Directory.Packages.props` and `Tilegen.TestKit`. Add both to TestKit's row in `DeclaredReferenceTests`, and update the row's comment. Verify that the architecture tests pass. Then remove one package from the allowlist in a scratch edit, show `Project_declares_only_allowed_packages(Tilegen.TestKit)` failing, and revert.
+- [x] 4.2 Implement the golden comparer and provenance reader (design D7):
   - `GoldenComparison` with `Matches`, `Missing`, `SizeDiffers` and `PixelsDiffer`;
   - `Golden.Compare` and `Golden.AssertMatches`;
   - actual and expected images written under `golden-results/` on anything but a match;
   - no record mode.
 
   Verify with tests in `Tilegen.Core.Tests` for each `GoldenComparison` case and a PNG encode-then-decode round trip. Each test uses its own temporary directory and removes it.
-- [ ] 4.3 Update the docs that describe the comparer and the test kit:
+- [x] 4.3 Update the docs that describe the comparer and the test kit:
   - `docs/architecture/testing.md`: How it applies (the test kit holds the comparer; CsCheck is pinned) and Enforcement (the comparer is built; it covers R4 and supports R6);
   - `docs/architecture/ports-and-adapters.md`, the note under the table: the test kit is also allowed the two Stb packages;
   - `docs/architecture/README.md`, Enforcement status;

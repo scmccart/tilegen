@@ -17,4 +17,4 @@ You are editing tests. Read `docs/architecture/testing.md` before adding a test 
 
 There are no end-to-end or GUI tests. Don't add a harness that drives the window.
 
-Enforced by: the banned-API list for tests, `tests/BannedSymbols.txt`, with RS0030 as an error (`testing R12` in part). The golden comparer is not built yet and arrives with the first technique change, because it needs a PNG decoder and a pixel type. CI runs every test project (`.github/workflows/build.yml`; see `docs/architecture/README.md`, "Enforcement status").
+Enforced by: the banned-API list for tests, `tests/BannedSymbols.txt`, with RS0030 as an error (`testing R12` in part). The golden comparer, `Golden` in `tests/Tilegen.TestKit`, decodes before comparing, writes the actual and expected images to `golden-results/<technique>/` on a mismatch, and has no record mode (`testing R4`; it supports `R5` and `R6`). CI runs every test project (`.github/workflows/build.yml`; see `docs/architecture/README.md`, "Enforcement status").

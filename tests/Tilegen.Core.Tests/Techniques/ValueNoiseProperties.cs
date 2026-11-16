@@ -11,7 +11,8 @@ namespace Tilegen.Core.Tests.Techniques;
 /// up to 64) so the file runs quickly.
 /// <para>
 /// The inputs-unchanged property (testing R9, functional-core R4) has nothing to check here:
-/// value noise takes no input buffer. It arrives with the first technique that does.
+/// value noise reads no other stage's output. It is in <see cref="ThresholdProperties"/>, the
+/// first technique that does.
 /// </para>
 /// </summary>
 public class ValueNoiseProperties

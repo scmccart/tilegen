@@ -24,6 +24,7 @@ public static class Generation
         return stage switch
         {
             Noise noise => ValueNoise.Run(noise.Parameters, random),
+            Threshold threshold => TerrainThreshold.Run(outputs[threshold.Parameters.Source], threshold.Parameters, random),
         };
     }
 }

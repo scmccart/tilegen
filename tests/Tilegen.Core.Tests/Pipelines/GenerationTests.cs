@@ -1,3 +1,4 @@
+using Tilegen.Core.Imaging;
 using Tilegen.Core.Pipelines;
 using Tilegen.Core.Techniques;
 using Tilegen.TestKit;
@@ -22,5 +23,33 @@ public class GenerationTests
         Assert.Equal(3, actual.Count);
         Assert.Equal(expected.Count, actual.Count);
         Assert.All(expected.Zip(actual), pair => Assert.Null(Pixels.Difference(pair.First, pair.Second)));
+    }
+
+    /// <summary>
+    /// The outputs hold a second image under another id, which thresholds differently, so reading
+    /// the wrong output fails the comparison.
+    /// </summary>
+    [Fact]
+    public void A_threshold_stage_runs_as_the_threshold_on_its_sources_output()
+    {
+        var height = NoiseImage(seed: 1);
+        var other = NoiseImage(seed: 2);
+        var parameters = ThresholdParameters.Create(StageId.Create("height"), ThresholdLevel.Create(128));
+        var threshold = new Threshold(StageId.Create("terrain"), parameters);
+        var outputs = StageOutputs.Empty.With(StageId.Create("other"), other).With(StageId.Create("height"), height);
+
+        var expected = Pixels.Snapshots(TerrainThreshold.Run(height, parameters, new Random(Seed)));
+        var fromOther = Pixels.Snapshots(TerrainThreshold.Run(other, parameters, new Random(Seed)));
+        var actual = Pixels.Snapshots(Generation.Run(threshold, outputs, new Random(Seed)));
+
+        Assert.NotNull(Pixels.Difference(Assert.Single(fromOther), Assert.Single(expected)));
+        Assert.Null(Pixels.Difference(Assert.Single(expected), Assert.Single(actual)));
+    }
+
+    private static Image NoiseImage(int seed)
+    {
+        var parameters = NoiseParameters.Create(
+            PixelSize.Create(32), PixelSize.Create(24), Octaves.Create(3), CellSize.Create(8), Persistence.Create(0.5));
+        return ValueNoise.Run(parameters, new Random(seed)).Last().ToImage();
     }
 }

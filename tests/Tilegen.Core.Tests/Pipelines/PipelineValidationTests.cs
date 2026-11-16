@@ -7,9 +7,12 @@ using Xunit;
 namespace Tilegen.Core.Tests.Pipelines;
 
 /// <summary>
-/// One test per scenario in specs/pipeline-validation and the range and finest-octave scenarios
-/// in specs/value-noise, plus the order rules of design D3. Every <see cref="Finding"/> case and
-/// both <see cref="ValidationOutcome"/> cases are produced here by <see cref="Pipeline.Validate"/>.
+/// One test per scenario in specs/pipeline-validation, the range and finest-octave scenarios in
+/// specs/value-noise and the validation scenarios in specs/threshold, plus the order rules: stages
+/// in description order, and within a stage the id, then each parameter in declaration order,
+/// inputs included, then the cross-field rule. Every <see cref="Finding"/> case and both
+/// <see cref="ValidationOutcome"/> cases are produced here by <see cref="Pipeline.Validate"/>.
+/// Later and self inputs use handles from a second builder whose stages have matching ids.
 /// </summary>
 public class PipelineValidationTests
 {
@@ -17,11 +20,15 @@ public class PipelineValidationTests
     private static readonly ParameterRange OctavesRange = new(Octaves.Min, true, Octaves.Max);
     private static readonly ParameterRange CellSizeRange = new(CellSize.Min, true, CellSize.Max);
     private static readonly ParameterRange PersistenceRange = new(Persistence.ExclusiveMin, false, Persistence.Max);
+    private static readonly ParameterRange LevelRange = new(ThresholdLevel.Min, true, ThresholdLevel.Max);
 
     private static NoiseDescription Stage(
         string id = "height", int width = 64, int height = 64, int octaves = 4, int cellSize = 16,
         double persistence = 0.5) =>
         new(id, width, height, octaves, cellSize, persistence);
+
+    private static ThresholdDescription ThresholdStage(string id, StageHandle source, int level = 128) =>
+        new(id, source, level);
 
     private static PipelineDescription Describe(params StageDescription[] stages) => new([.. stages]);
 
@@ -38,6 +45,7 @@ public class PipelineValidationTests
         Parameter.Octaves => OctavesRange,
         Parameter.CellSize => CellSizeRange,
         Parameter.Persistence => PersistenceRange,
+        Parameter.Level => LevelRange,
     };
 
     // Requirement: A description holds plain values.
@@ -368,6 +376,246 @@ public class PipelineValidationTests
         var findings = FindingsOf(Describe(Stage(octaves: 5, cellSize: 0)));
 
         Assert.Equal([new OutOfRange(new StageRef(0, "height"), Parameter.CellSize, 0, CellSizeRange)], findings);
+    }
+
+    // Requirement: A builder hands out a handle for each stage added.
+
+    [Fact]
+    public void A_stage_reads_an_earlier_stage_through_its_handle()
+    {
+        var builder = new PipelineBuilder();
+        var height = builder.Add(Stage("height"));
+        builder.Add(ThresholdStage("terrain", height));
+
+        var description = builder.Build();
+
+        Assert.Equal(["height", "terrain"], description.Stages.Select(stage => stage.Id));
+        var threshold = Assert.IsType<ThresholdDescription>(description.Stages[1]);
+        Assert.Equal((0, "height"), (threshold.Source.Index, threshold.Source.Id));
+    }
+
+    // Requirement: A missing input is reported.
+
+    [Fact]
+    public void An_input_left_empty_is_reported_as_missing()
+    {
+        var findings = FindingsOf(Describe(Stage("height"), ThresholdStage("terrain", null!)));
+
+        Assert.Equal([new MissingInput(new StageRef(1, "terrain"), Input.Source)], findings);
+    }
+
+    // Requirement: An input from elsewhere is reported.
+
+    [Fact]
+    public void A_handle_from_another_builder_is_reported_as_unknown()
+    {
+        var other = new PipelineBuilder().Add(Stage("other"));
+
+        var findings = FindingsOf(Describe(Stage("height"), ThresholdStage("terrain", other)));
+
+        Assert.Equal([new UnknownInput(new StageRef(1, "terrain"), Input.Source, 0, "other")], findings);
+    }
+
+    [Fact]
+    public void A_handle_to_a_position_past_the_end_is_reported_as_unknown()
+    {
+        var other = new PipelineBuilder();
+        other.Add(Stage("a"));
+        other.Add(Stage("b"));
+        var third = other.Add(Stage("height"));
+
+        var findings = FindingsOf(Describe(Stage("height"), ThresholdStage("terrain", third)));
+
+        Assert.Equal([new UnknownInput(new StageRef(1, "terrain"), Input.Source, 2, "height")], findings);
+    }
+
+    [Fact]
+    public void A_handle_whose_id_differs_only_in_case_is_reported_as_unknown()
+    {
+        var other = new PipelineBuilder().Add(Stage("Height"));
+
+        var findings = FindingsOf(Describe(Stage("height"), ThresholdStage("terrain", other)));
+
+        Assert.Equal([new UnknownInput(new StageRef(1, "terrain"), Input.Source, 0, "Height")], findings);
+    }
+
+    // Requirement: An input names an earlier stage.
+
+    [Fact]
+    public void A_stage_that_reads_itself_is_reported()
+    {
+        var other = new PipelineBuilder().Add(Stage("t"));
+
+        var findings = FindingsOf(Describe(ThresholdStage("t", other)));
+
+        Assert.Equal([new SelfInput(new StageRef(0, "t"), Input.Source)], findings);
+    }
+
+    [Fact]
+    public void A_stage_that_reads_a_later_stage_is_reported_with_the_later_position()
+    {
+        var other = new PipelineBuilder();
+        other.Add(Stage("x"));
+        var later = other.Add(Stage("height"));
+
+        var findings = FindingsOf(Describe(ThresholdStage("terrain", later), Stage("height")));
+
+        Assert.Equal([new LaterInput(new StageRef(0, "terrain"), Input.Source, 1)], findings);
+    }
+
+    // Requirement: An input is not reported for its source's own findings.
+
+    [Fact]
+    public void Reading_a_stage_that_has_a_bad_parameter_reports_only_that_stages_finding()
+    {
+        var builder = new PipelineBuilder();
+        var height = builder.Add(Stage("height", width: 0));
+        builder.Add(ThresholdStage("terrain", height));
+
+        var findings = FindingsOf(builder.Build());
+
+        Assert.Equal([new OutOfRange(new StageRef(0, "height"), Parameter.Width, 0, PixelSizeRange)], findings);
+    }
+
+    [Theory]
+    [InlineData("two words")]
+    [InlineData("")]
+    public void Reading_a_stage_with_an_invalid_id_reports_only_that_stages_finding(string id)
+    {
+        var builder = new PipelineBuilder();
+        var source = builder.Add(Stage(id));
+        builder.Add(ThresholdStage("terrain", source));
+
+        var findings = FindingsOf(builder.Build());
+
+        Assert.Equal([new InvalidStageId(new StageRef(0, id))], findings);
+    }
+
+    [Fact]
+    public void Reading_a_stage_with_a_null_id_reports_only_that_stages_finding()
+    {
+        var builder = new PipelineBuilder();
+        var source = builder.Add(Stage(null!));
+        builder.Add(ThresholdStage("terrain", source));
+
+        var findings = FindingsOf(builder.Build());
+
+        Assert.Equal([new InvalidStageId(new StageRef(0, ""))], findings);
+    }
+
+    [Fact]
+    public void Reading_a_stage_with_a_repeated_id_reports_only_the_repeat()
+    {
+        var builder = new PipelineBuilder();
+        builder.Add(Stage("a"));
+        var repeat = builder.Add(Stage("a"));
+        builder.Add(ThresholdStage("terrain", repeat));
+
+        var findings = FindingsOf(builder.Build());
+
+        Assert.Equal([new DuplicateStageId(new StageRef(1, "a"), 0)], findings);
+    }
+
+    [Fact]
+    public void Reading_a_threshold_whose_own_source_is_bad_reports_only_the_bad_stage()
+    {
+        var builder = new PipelineBuilder();
+        var height = builder.Add(Stage("height", width: 0));
+        var terrain = builder.Add(ThresholdStage("terrain", height));
+        builder.Add(ThresholdStage("again", terrain));
+
+        var findings = FindingsOf(builder.Build());
+
+        Assert.Equal([new OutOfRange(new StageRef(0, "height"), Parameter.Width, 0, PixelSizeRange)], findings);
+    }
+
+    // threshold requirement: A threshold stage has a source and a level.
+
+    [Fact]
+    public void A_level_out_of_range_is_reported()
+    {
+        var builder = new PipelineBuilder();
+        var height = builder.Add(Stage("height"));
+        builder.Add(ThresholdStage("terrain", height, level: 256));
+
+        var findings = FindingsOf(builder.Build());
+
+        Assert.Equal([new OutOfRange(new StageRef(1, "terrain"), Parameter.Level, 256, LevelRange)], findings);
+        Assert.Equal(new ParameterRange(0, true, 255), LevelRange);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(256)]
+    public void A_level_just_outside_its_range_is_reported(int level)
+    {
+        var builder = new PipelineBuilder();
+        var height = builder.Add(Stage("height"));
+        builder.Add(ThresholdStage("terrain", height, level));
+
+        var findings = FindingsOf(builder.Build());
+
+        Assert.Equal([new OutOfRange(new StageRef(1, "terrain"), Parameter.Level, level, LevelRange)], findings);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(255)]
+    public void A_level_at_the_edge_of_its_range_is_accepted(int level)
+    {
+        var builder = new PipelineBuilder();
+        var height = builder.Add(Stage("height"));
+        builder.Add(ThresholdStage("terrain", height, level));
+
+        var pipeline = PipelineOf(builder.Build());
+
+        Assert.Equal(level, Assert.IsType<Threshold>(pipeline.Stages[1]).Parameters.Level.Value);
+    }
+
+    [Fact]
+    public void A_valid_threshold_stage_validates_reading_the_noise_stage()
+    {
+        var builder = new PipelineBuilder();
+        var height = builder.Add(Stage("height"));
+        builder.Add(ThresholdStage("terrain", height, level: 128));
+
+        var pipeline = PipelineOf(builder.Build());
+
+        Assert.Equal(2, pipeline.Stages.Length);
+        var noise = Assert.IsType<Noise>(pipeline.Stages[0]);
+        var threshold = Assert.IsType<Threshold>(pipeline.Stages[1]);
+        Assert.Equal(StageId.Create("height"), noise.Id);
+        Assert.Equal(StageId.Create("terrain"), threshold.Id);
+        Assert.Equal(noise.Id, threshold.Parameters.Source);
+        Assert.Equal(128, threshold.Parameters.Level.Value);
+    }
+
+    [Fact]
+    public void A_threshold_may_read_another_threshold()
+    {
+        var builder = new PipelineBuilder();
+        var height = builder.Add(Stage("height"));
+        var terrain = builder.Add(ThresholdStage("terrain", height));
+        builder.Add(ThresholdStage("again", terrain));
+
+        var pipeline = PipelineOf(builder.Build());
+
+        Assert.Equal(StageId.Create("terrain"), Assert.IsType<Threshold>(pipeline.Stages[2]).Parameters.Source);
+    }
+
+    [Fact]
+    public void Within_a_threshold_stage_the_id_comes_first_then_the_source_then_the_level()
+    {
+        var findings = FindingsOf(Describe(Stage("height"), ThresholdStage("", null!, level: 300)));
+
+        var at = new StageRef(1, "");
+        Assert.Equal(
+            [
+                new InvalidStageId(at),
+                new MissingInput(at, Input.Source),
+                new OutOfRange(at, Parameter.Level, 300, LevelRange),
+            ],
+            findings);
     }
 
     // Requirement: Validation is deterministic and leaves the description unchanged.

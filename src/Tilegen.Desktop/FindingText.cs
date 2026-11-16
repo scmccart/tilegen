@@ -29,6 +29,21 @@ internal static class FindingText
             Invariant,
             $"{StageName(finest.Stage)}: cell size is {finest.CellSize}, but {finest.Octaves} octaves need at least "
                 + $"{finest.SmallestValidCellSize}."),
+        MissingInput missing => string.Create(
+            Invariant,
+            $"{StageName(missing.Stage)}: {InputName(missing.Input)} names no stage."),
+        UnknownInput unknown => string.Create(
+            Invariant,
+            $"{StageName(unknown.Stage)}: {InputName(unknown.Input)} names a stage at index {unknown.GivenIndex} "
+                + $"(\"{unknown.GivenId}\"), which this pipeline doesn't have."),
+        SelfInput self => string.Create(
+            Invariant,
+            $"{StageName(self.Stage)}: {InputName(self.Input)} names this stage itself, "
+                + $"but a stage can only read a stage before it."),
+        LaterInput later => string.Create(
+            Invariant,
+            $"{StageName(later.Stage)}: {InputName(later.Input)} names the stage at index {later.SourceIndex}, "
+                + $"which comes later."),
     };
 
     /// <summary>Names a stage by its position in the description and its id as written, which may be what is wrong.</summary>
@@ -42,6 +57,12 @@ internal static class FindingText
         Parameter.Octaves => "octaves",
         Parameter.CellSize => "cell size",
         Parameter.Persistence => "persistence",
+        Parameter.Level => "level",
+    };
+
+    private static string InputName(Input input) => input switch
+    {
+        Input.Source => "source",
     };
 
     /// <summary>The maximum is always inclusive; the minimum may not be.</summary>

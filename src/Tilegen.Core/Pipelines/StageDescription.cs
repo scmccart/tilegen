@@ -12,5 +12,12 @@ public closed record class StageDescription(string Id);
 public sealed record class NoiseDescription(
     string Id, int Width, int Height, int Octaves, int CellSize, double Persistence) : StageDescription(Id);
 
+/// <summary>
+/// A threshold stage as written: the stage it reads, through the handle a builder gave for it, and
+/// its level. The source may be null, or a handle that doesn't fit this description; validation
+/// reports both.
+/// </summary>
+public sealed record class ThresholdDescription(string Id, StageHandle Source, int Level) : StageDescription(Id);
+
 /// <summary>A pipeline as a definition wrote it. Nothing here has been checked.</summary>
 public sealed record class PipelineDescription(ImmutableArray<StageDescription> Stages);

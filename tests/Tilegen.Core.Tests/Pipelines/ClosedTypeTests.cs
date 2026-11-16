@@ -20,11 +20,13 @@ public class ClosedTypeTests
     private static string Name(StageDescription description) => description switch
     {
         NoiseDescription => nameof(NoiseDescription),
+        ThresholdDescription => nameof(ThresholdDescription),
     };
 
     private static string Name(Stage stage) => stage switch
     {
         Noise => nameof(Noise),
+        Threshold => nameof(Threshold),
     };
 
     private static string Name(ValidationOutcome outcome) => outcome switch
@@ -40,6 +42,10 @@ public class ClosedTypeTests
         DuplicateStageId => nameof(DuplicateStageId),
         OutOfRange => nameof(OutOfRange),
         FinestOctaveBelowOnePixel => nameof(FinestOctaveBelowOnePixel),
+        MissingInput => nameof(MissingInput),
+        UnknownInput => nameof(UnknownInput),
+        SelfInput => nameof(SelfInput),
+        LaterInput => nameof(LaterInput),
     };
 
     private static string Name(Parameter parameter) => parameter switch
@@ -49,6 +55,12 @@ public class ClosedTypeTests
         Parameter.Octaves => "o",
         Parameter.CellSize => "c",
         Parameter.Persistence => "p",
+        Parameter.Level => "l",
+    };
+
+    private static string Name(Input input) => input switch
+    {
+        Input.Source => "s",
     };
 
     private static ValidatedPipeline OneStagePipeline() =>
@@ -57,13 +69,21 @@ public class ClosedTypeTests
     [Fact]
     public void A_switch_over_stage_descriptions_needs_no_discard_arm()
     {
-        Assert.Equal("NoiseDescription", Name(new NoiseDescription("a", 8, 8, 2, 4, 0.5)));
+        var noise = new NoiseDescription("a", 8, 8, 2, 4, 0.5);
+        var source = new PipelineBuilder().Add(noise);
+
+        Assert.Equal("NoiseDescription", Name(noise));
+        Assert.Equal("ThresholdDescription", Name(new ThresholdDescription("b", source, 128)));
     }
 
     [Fact]
     public void A_switch_over_stages_needs_no_discard_arm()
     {
         Assert.Equal("Noise", Name(new Noise(StageId.Create("a"), Parameters)));
+        Assert.Equal(
+            "Threshold",
+            Name(new Threshold(
+                StageId.Create("b"), ThresholdParameters.Create(StageId.Create("a"), ThresholdLevel.Create(128)))));
     }
 
     [Fact]
@@ -86,12 +106,22 @@ public class ClosedTypeTests
         Assert.Equal("DuplicateStageId", Name(new DuplicateStageId(Ref, 0)));
         Assert.Equal("OutOfRange", Name(new OutOfRange(Ref, Parameter.Width, 0, range)));
         Assert.Equal("FinestOctaveBelowOnePixel", Name(new FinestOctaveBelowOnePixel(Ref, 1, 4, 8)));
+        Assert.Equal("MissingInput", Name(new MissingInput(Ref, Input.Source)));
+        Assert.Equal("UnknownInput", Name(new UnknownInput(Ref, Input.Source, 3, "other")));
+        Assert.Equal("SelfInput", Name(new SelfInput(Ref, Input.Source)));
+        Assert.Equal("LaterInput", Name(new LaterInput(Ref, Input.Source, 1)));
     }
 
     [Fact]
     public void A_switch_over_parameters_needs_no_discard_arm()
     {
-        Assert.Equal(["w", "h", "o", "c", "p"], Enum.GetValues<Parameter>().Select(Name));
+        Assert.Equal(["w", "h", "o", "c", "p", "l"], Enum.GetValues<Parameter>().Select(Name));
+    }
+
+    [Fact]
+    public void A_switch_over_inputs_needs_no_discard_arm()
+    {
+        Assert.Equal(["s"], Enum.GetValues<Input>().Select(Name));
     }
 
     [Fact]

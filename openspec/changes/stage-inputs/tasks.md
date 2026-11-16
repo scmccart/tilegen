@@ -19,7 +19,7 @@ Some tasks in groups 1 and 3 touch Engine or Desktop. Those edits are the mechan
   - `CopyTo` is row-major and throws on a short span;
   - `ToBuffer` gives an independent copy;
   - an out-of-range index throws.
-- [ ] 1.3 Ban the escape hatches (design D4). **Only if the owner has confirmed the three bans;** otherwise record the escape hatches as review-only in `functional-core.md`'s Enforcement section, and skip the rest of this task.
+- [ ] 1.3 Ban the escape hatches (design D4).
   - First confirm that `grep -rn "MemoryMarshal\|ImmutableCollectionsMarshal\|Unsafe\." src/Tilegen.Core` finds nothing.
   - Then add `T:System.Runtime.InteropServices.ImmutableCollectionsMarshal`, `T:System.Runtime.InteropServices.MemoryMarshal` and `T:System.Runtime.CompilerServices.Unsafe` to `src/Tilegen.Core/BannedSymbols.txt`, with messages citing `functional-core R4`.
   - Update the banned-list paragraph in the Enforcement section of `docs/architecture/functional-core.md`.

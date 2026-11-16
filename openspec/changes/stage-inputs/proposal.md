@@ -13,7 +13,7 @@ Today every stage generates from nothing, and a pipeline runs its stages side by
   - an input that names no stage of this description, such as a handle from another builder;
   - an input that names a later stage;
   - an input that names the stage itself.
-- **An immutable image type (Core).** The pixels the engine keeps are a new immutable `Image`. A stage's input is the `Image` the engine kept for its source, so the compiler stops a technique from writing to its input. The timeline keeps `Image`s too.
+- **An immutable image type (Core).** The pixels the engine keeps are a new immutable `Image`. A stage's input is the `Image` the engine kept for its source, so the compiler stops a technique from writing to its input. The timeline keeps `Image`s too. Core's banned list gains `ImmutableCollectionsMarshal`, `MemoryMarshal` and `Unsafe`, the ways back to a writable array (owner decision, 2026-11-15).
 - **Threshold, the second technique (Core).** It reads one input. Each pixel at or above a brightness level becomes white, and every other pixel becomes black: a two-terrain map. It yields one frame, and its output is the size of its input. It has a golden, made from the approved value-noise golden.
 - **The engine passes inputs (Engine).** The engine passes each stage the last kept frame of each stage it reads.
 - **The inputs-unchanged property arrives** (`testing R9`). A Core property checks after every step that the input's pixels are unchanged, and an Engine scenario checks that a downstream stage leaves its source's timeline entries unchanged.
@@ -57,7 +57,7 @@ Today every stage generates from nothing, and a pipeline runs its stages side by
   - `Image`, with `Frame.ToImage()`;
   - `StageOutputs`, and the new `Generation.Run` signature;
   - the technique `TerrainThreshold.Run`.
-  - `ImmutableCollectionsMarshal` joins Core's banned list.
+  - `ImmutableCollectionsMarshal`, `MemoryMarshal` and `Unsafe` join Core's banned list.
 - **Engine:** the run keeps each finished stage's last image and passes the kept outputs to `Generation.Run`. `TimelineEntry` holds an `Image`.
 - **Desktop:**
   - `BuiltInPipeline` uses the builder and a threshold stage;

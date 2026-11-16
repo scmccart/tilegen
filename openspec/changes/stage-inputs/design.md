@@ -17,7 +17,7 @@
   - **Several inputs:** the model allows several **named slots** per technique. Threshold has one.
   - **Where declared:** input slots go **inside the technique's parameters record**, beside its numbers.
   - **Kind:** no input kinds in this change. Any stage can feed any slot, and the wrong-kind finding moves to change 4.
-  - **Unchanged inputs:** enforced **at compile time by an immutable type**, with a property checked after every step and an Engine scenario as guards.
+  - **Unchanged inputs:** enforced **at compile time by an immutable type**, with the three marshal and unsafe types banned in Core (D4), with a property checked after every step and an Engine scenario as guards.
   - **Technique:** threshold to black and white, one frame, and a golden made from the value-noise golden.
 
 ## Goals / Non-Goals
@@ -149,7 +149,7 @@ public sealed class Image
 
 - **Why a type of our own.** The owner asked for inputs to be unchangeable at compile time. A technique receives an `Image`, and `Image` has no setter, no writable span and no way back to a mutable array. Writing to an input then doesn't compile, rather than being something a review has to catch.
 - **The timeline keeps `Image`s.** `TimelineEntry(StageId Stage, int Step, Image Image)`, and the run keeps each yielded frame with `frame.ToImage()`, where it now calls `ToBuffer()`. A stage's input is its source's last entry's `Image`, so passing it costs no further copy. `Frame` stays as it is: a view, valid until the next step.
-- **Closing the escape hatches.** `ImmutableArray` can be turned back into an array through `ImmutableCollectionsMarshal`, `MemoryMarshal` or `Unsafe`. **Proposed, pending the owner's confirmation:** all three types join `src/Tilegen.Core/BannedSymbols.txt`, with messages citing `functional-core R4`. They go beyond the one ban the owner heard about, so task 1.3 waits for a yes. Without them, the escape hatches stay with review, and the Enforcement section says so. The task checks that Core uses none of them today, and that each entry gives RS0030.
+- **Closing the escape hatches.** `ImmutableArray` can be turned back into an array through `ImmutableCollectionsMarshal`, `MemoryMarshal` or `Unsafe`. All three types join `src/Tilegen.Core/BannedSymbols.txt`, with messages citing `functional-core R4` (owner decision, 2026-11-15). The task checks that Core uses none of them today, and that each entry gives RS0030.
 - **Alternatives rejected:**
   - `IReadOnlyList<Rgba32>`: a cast can recover the array, and an interface crossing into a technique sits awkwardly with `functional-core R6`.
   - `ReadOnlyMemory<Rgba32>`: `MemoryMarshal.TryGetArray` returns the array.

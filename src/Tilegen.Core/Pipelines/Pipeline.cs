@@ -33,9 +33,14 @@ public static class Pipeline
 
         for (var index = 0; index < description.Stages.Length; index++)
         {
-            Stage? stage = description.Stages[index] switch
+            var described = description.Stages[index];
+
+            // The id is on the base record, so the stage is named the same way whatever its technique.
+            var at = new StageRef(index, described.Id ?? "");
+
+            Stage? stage = described switch
             {
-                NoiseDescription noise => ValidateNoise(index, noise, firstUse, findings),
+                NoiseDescription noise => ValidateNoise(at, noise, firstUse, findings),
             };
 
             if (stage is not null)
@@ -51,9 +56,8 @@ public static class Pipeline
 
     /// <summary>Returns the stage, or null when it added a finding.</summary>
     private static Noise? ValidateNoise(
-        int index, NoiseDescription noise, Dictionary<string, int> firstUse, ImmutableArray<Finding>.Builder findings)
+        StageRef at, NoiseDescription noise, Dictionary<string, int> firstUse, ImmutableArray<Finding>.Builder findings)
     {
-        var at = new StageRef(index, noise.Id ?? "");
         var findingsBefore = findings.Count;
 
         var id = CheckId(at, firstUse, findings);

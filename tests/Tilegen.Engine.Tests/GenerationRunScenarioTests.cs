@@ -66,7 +66,7 @@ public class GenerationRunScenarioTests
         var framesOfB = Entries(afterA.Timeline).Where(entry => entry.Stage.Value == "b").ToList();
         var framesOfBAfterC = Entries(afterC.Timeline).Where(entry => entry.Stage.Value == "b");
         Assert.Equal(2, framesOfB.Count);
-        Assert.Null(Difference(framesOfB.Select(entry => entry.Frame.ToBuffer()).ToList(), framesOfBAfterC));
+        Assert.Null(Difference(framesOfB.Select(entry => entry.Image.ToBuffer()).ToList(), framesOfBAfterC));
     }
 
     // Requirement: A run advances one step at a time.
@@ -191,7 +191,7 @@ public class GenerationRunScenarioTests
         Assert.Equal(
             firstEntries.Select(entry => (entry.Stage, entry.Step)),
             secondEntries.Select(entry => (entry.Stage, entry.Step)));
-        Assert.Null(Difference(firstEntries.Select(entry => entry.Frame.ToBuffer()).ToList(), secondEntries));
+        Assert.Null(Difference(firstEntries.Select(entry => entry.Image.ToBuffer()).ToList(), secondEntries));
     }
 
     [Fact]
@@ -204,8 +204,8 @@ public class GenerationRunScenarioTests
         RunToCompletion(withOne);
         RunToCompletion(withTwo);
 
-        var lastWithOne = withOne.Timeline[withOne.Timeline.Count - 1].Frame.ToBuffer();
-        var lastWithTwo = withTwo.Timeline[withTwo.Timeline.Count - 1].Frame.ToBuffer();
+        var lastWithOne = withOne.Timeline[withOne.Timeline.Count - 1].Image.ToBuffer();
+        var lastWithTwo = withTwo.Timeline[withTwo.Timeline.Count - 1].Image.ToBuffer();
         Assert.NotNull(Pixels.Difference(lastWithOne, lastWithTwo));
     }
 }

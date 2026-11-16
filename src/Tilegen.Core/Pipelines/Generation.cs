@@ -12,11 +12,14 @@ public static class Generation
     /// <summary>
     /// The frames of <paramref name="stage"/>'s technique, drawing only from
     /// <paramref name="random"/>, which the engine seeded from the stage's seed
-    /// (functional-core R3, R9). Frames are valid until the next step (functional-core R4).
+    /// (functional-core R3, R9). <paramref name="outputs"/> holds the last image of every stage
+    /// that has finished; which of them a stage reads is decided here, by its case
+    /// (functional-core R2). Frames are valid until the next step (functional-core R4).
     /// </summary>
-    public static IEnumerable<Frame> Run(Stage stage, Random random)
+    public static IEnumerable<Frame> Run(Stage stage, StageOutputs outputs, Random random)
     {
         ArgumentNullException.ThrowIfNull(stage);
+        ArgumentNullException.ThrowIfNull(outputs);
 
         return stage switch
         {

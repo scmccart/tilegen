@@ -29,22 +29,22 @@ internal sealed class FrameTexture(GraphicsDevice device)
             return cached;
         }
 
-        var texture = Upload(run.Timeline[index].Frame);
+        var texture = Upload(run.Timeline[index].Image);
         _shown = key;
         return texture;
     }
 
-    private Texture2D Upload(Frame frame)
+    private Texture2D Upload(Image image)
     {
-        if (_texture is null || _texture.Width != frame.Width || _texture.Height != frame.Height)
+        if (_texture is null || _texture.Width != image.Width || _texture.Height != image.Height)
         {
             _texture?.Dispose();
-            _texture = new Texture2D(device, frame.Width, frame.Height);
-            _pixels = new Rgba32[frame.Width * frame.Height];
+            _texture = new Texture2D(device, image.Width, image.Height);
+            _pixels = new Rgba32[image.Width * image.Height];
             _colors = new Color[_pixels.Length];
         }
 
-        frame.CopyTo(_pixels);
+        image.CopyTo(_pixels);
         for (var i = 0; i < _pixels.Length; i++)
         {
             var pixel = _pixels[i];

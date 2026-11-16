@@ -17,7 +17,7 @@ public class GenerationTests
         var noise = Assert.IsType<Noise>(Assert.Single(valid.Pipeline.Stages));
 
         var expected = Pixels.Snapshots(ValueNoise.Run(noise.Parameters, new Random(Seed)));
-        var actual = Pixels.Snapshots(Generation.Run(noise, new Random(Seed)));
+        var actual = Pixels.Snapshots(Generation.Run(noise, StageOutputs.Empty, new Random(Seed)));
 
         Assert.Equal(3, actual.Count);
         Assert.Equal(expected.Count, actual.Count);

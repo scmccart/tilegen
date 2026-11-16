@@ -34,16 +34,18 @@ internal static class TestPipelines
         Enumerable.Range(0, timeline.Count).Select(index => timeline[index]).ToList();
 
     /// <summary>
-    /// The frames of <paramref name="stage"/>'s technique run alone, with the stage seed derived
-    /// from <paramref name="seed"/> and the stage's id, each copied as it was yielded.
+    /// The frames of <paramref name="stage"/>'s technique run alone, with no other stage's output
+    /// and the stage seed derived from <paramref name="seed"/> and the stage's id, each copied as it
+    /// was yielded.
     /// </summary>
     public static IReadOnlyList<PixelBuffer> RunAlone(Stage stage, RunSeed seed) =>
-        Pixels.Snapshots(Generation.Run(stage, new Random(StageSeed.Derive(seed, stage.Id).Value)));
+        Pixels.Snapshots(
+            Generation.Run(stage, StageOutputs.Empty, new Random(StageSeed.Derive(seed, stage.Id).Value)));
 
     /// <summary>Null when the entries' frames equal the buffers pixel for pixel, in order; otherwise why not.</summary>
     public static string? Difference(IReadOnlyList<PixelBuffer> expected, IEnumerable<TimelineEntry> entries)
     {
-        var actual = entries.Select(entry => entry.Frame.ToBuffer()).ToList();
+        var actual = entries.Select(entry => entry.Image.ToBuffer()).ToList();
         if (expected.Count != actual.Count)
         {
             return $"Expected {expected.Count} frames, found {actual.Count}.";

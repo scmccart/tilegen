@@ -2,8 +2,8 @@ namespace Tilegen.Core.Imaging;
 
 /// <summary>
 /// A read-only view over a technique's working buffer. It is valid only until the run's next
-/// step (functional-core R4): call <see cref="ToBuffer"/> to keep one. It carries no step number
-/// or stage id; the timeline that needs them is the engine's.
+/// step (functional-core R4): call <see cref="ToImage"/> or <see cref="ToBuffer"/> to keep one. It
+/// carries no step number or stage id; the timeline that needs them is the engine's.
 /// </summary>
 public sealed class Frame
 {
@@ -23,6 +23,9 @@ public sealed class Frame
 
     /// <summary>An independent copy of the frame's pixels as they are now.</summary>
     public PixelBuffer ToBuffer() => _buffer.Copy();
+
+    /// <summary>An immutable copy of the frame's pixels as they are now, which later steps can't change.</summary>
+    public Image ToImage() => _buffer.ToImage();
 
     /// <summary>
     /// Copies the frame's pixels as they are now into <paramref name="destination"/>, in row-major

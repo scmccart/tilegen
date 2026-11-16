@@ -9,8 +9,8 @@ Some tasks in groups 1 and 3 touch Engine or Desktop. Those edits are the mechan
 
 ## 1. Shared contracts
 
-- [ ] 1.1 Move the id to the base `StageDescription` (design D2): `closed record class StageDescription(string Id)`, with `NoiseDescription(string Id, …) : StageDescription(Id)`. Update `Pipeline.Validate` and the tests that build descriptions. Verify that the validation tests pass unchanged in what they assert, and that a test reads `Id` through a `StageDescription`-typed reference.
-- [ ] 1.2 Add `Image` under `Tilegen.Core.Imaging` (design D4), with `Frame.ToImage()` and `PixelBuffer.ToImage()`.
+- [x] 1.1 Move the id to the base `StageDescription` (design D2): `closed record class StageDescription(string Id)`, with `NoiseDescription(string Id, …) : StageDescription(Id)`. Update `Pipeline.Validate` and the tests that build descriptions. Verify that the validation tests pass unchanged in what they assert, and that a test reads `Id` through a `StageDescription`-typed reference.
+- [x] 1.2 Add `Image` under `Tilegen.Core.Imaging` (design D4), with `Frame.ToImage()` and `PixelBuffer.ToImage()`.
   - `Image` has `Width`, `Height`, a read-only indexer, `CopyTo(Span<Rgba32>)` and `ToBuffer()`.
   - It is backed by an `ImmutableArray<Rgba32>` and has no member that exposes it writably.
 
@@ -19,20 +19,20 @@ Some tasks in groups 1 and 3 touch Engine or Desktop. Those edits are the mechan
   - `CopyTo` is row-major and throws on a short span;
   - `ToBuffer` gives an independent copy;
   - an out-of-range index throws.
-- [ ] 1.3 Ban the escape hatches (design D4).
+- [x] 1.3 Ban the escape hatches (design D4).
   - First confirm that `grep -rn "MemoryMarshal\|ImmutableCollectionsMarshal\|Unsafe\." src/Tilegen.Core` finds nothing.
   - Then add `T:System.Runtime.InteropServices.ImmutableCollectionsMarshal`, `T:System.Runtime.InteropServices.MemoryMarshal` and `T:System.Runtime.CompilerServices.Unsafe` to `src/Tilegen.Core/BannedSymbols.txt`, with messages citing `functional-core R4`.
   - Update the banned-list paragraph in the Enforcement section of `docs/architecture/functional-core.md`.
 
   Verify that each entry gives RS0030 by adding a use of each to a Core file temporarily, building, and reverting.
-- [ ] 1.4 Add `StageOutputs` (`Empty`, `With`, and an indexer that throws on a missing id) and change `Generation.Run` to `Run(Stage, StageOutputs, Random)` (design D5). Keep `GenerationRun` and its tests compiling:
+- [x] 1.4 Add `StageOutputs` (`Empty`, `With`, and an indexer that throws on a missing id) and change `Generation.Run` to `Run(Stage, StageOutputs, Random)` (design D5). Keep `GenerationRun` and its tests compiling:
   - `TimelineEntry` holds `Image Image` in place of `Frame Frame`, and the run keeps `frame.ToImage()`;
   - the run adds each finished stage's last entry's image to its outputs, and passes the outputs when the next stage starts. A stage that ends with no frame throws `InvalidOperationException`;
   - `FrameTexture` uploads with `Image.CopyTo`;
   - `tests/Tilegen.Engine.Tests` and `GenerationTests` move from `.Frame` to `.Image`. The TestKit's `Pixels` helpers gain `Image` overloads if they need them.
 
   Verify that every existing Engine scenario passes unchanged in what it asserts, and that a Core test shows `StageOutputs.With` leaves the original unchanged and the indexer returns what was added.
-- [ ] 1.5 Add `StageHandle` (internal constructor; `Index`, `Id`) and `PipelineBuilder` (`Add`, `Build`), with the comment `functional-core R11` asks for (design D1). Verify with Core tests:
+- [x] 1.5 Add `StageHandle` (internal constructor; `Index`, `Id`) and `PipelineBuilder` (`Add`, `Build`), with the comment `functional-core R11` asks for (design D1). Verify with Core tests:
   - `Add` returns handles at positions 0, 1 and 2, holding the ids given, with `""` for a null id;
   - `Build` returns the stages in order, and a later `Add` doesn't change a description already built.
 

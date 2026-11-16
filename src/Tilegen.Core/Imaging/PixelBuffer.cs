@@ -1,9 +1,11 @@
+using System.Collections.Immutable;
+
 namespace Tilegen.Core.Imaging;
 
 /// <summary>
-/// A mutable, row-major grid of <see cref="Rgba32"/> pixels, at least 1 by 1. The one mutable
-/// type in Core (functional-core R11): a technique owns its working buffer and nothing else
-/// writes to it.
+/// A mutable, row-major grid of <see cref="Rgba32"/> pixels, at least 1 by 1. Mutable by design
+/// (functional-core R11): a technique owns its working buffer and nothing else writes to it. What
+/// is kept, or passed to another stage, is an <see cref="Image"/>.
 /// </summary>
 public sealed class PixelBuffer
 {
@@ -18,7 +20,11 @@ public sealed class PixelBuffer
         _pixels = new Rgba32[checked(width * height)];
     }
 
-    private PixelBuffer(int width, int height, Rgba32[] pixels)
+    /// <summary>
+    /// Takes <paramref name="pixels"/>, which the caller made for this buffer and holds no other
+    /// reference to.
+    /// </summary>
+    internal PixelBuffer(int width, int height, Rgba32[] pixels)
     {
         Width = width;
         Height = height;
@@ -37,6 +43,11 @@ public sealed class PixelBuffer
 
     /// <summary>A new buffer with the same size and pixels, sharing nothing with this one.</summary>
     public PixelBuffer Copy() => new(Width, Height, (Rgba32[])_pixels.Clone());
+
+    /// <summary>
+    /// An immutable copy of the pixels as they are now. Later writes to the buffer don't change it.
+    /// </summary>
+    public Image ToImage() => new(Width, Height, ImmutableArray.Create(_pixels));
 
     /// <summary>
     /// Copies the pixels into <paramref name="destination"/> in row-major order, for a bulk read

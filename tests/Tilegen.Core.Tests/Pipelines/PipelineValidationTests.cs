@@ -56,6 +56,16 @@ public class PipelineValidationTests
         Assert.Equal(0.5, stage.Persistence);
     }
 
+    [Fact]
+    public void A_described_stage_gives_its_id_without_a_switch_over_its_technique()
+    {
+        StageDescription stage = Stage("height");
+
+        var id = stage.Id;
+
+        Assert.Equal("height", id);
+    }
+
     // Requirement: Validation yields a runnable pipeline or findings.
 
     [Fact]

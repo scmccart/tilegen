@@ -9,7 +9,8 @@ You are editing `Tilegen.Engine`. Read `docs/architecture/functional-core.md`, `
 - Gather, call Core, enact. Don't branch except to dispatch on what Core returned or on what the user asked for (`functional-core R2`). A new `if` that changes what is generated belongs in Core.
 - Run only a validated pipeline, never a raw description (`illegal-states R3`).
 - Construct one `Random` per stage from the seed Core derives (`functional-core R9`).
-- A yielded frame is valid only until the next step: copy what the timeline keeps (`functional-core R4`).
+- A yielded frame is valid only until the next step: copy what the timeline keeps, with `ToImage()` (`functional-core R4`).
+- Keep each finished stage's last image and pass the outputs to `Generation.Run`. Which of them a stage reads is Core's choice (`functional-core R2`).
 - Ports use only Core and Engine types, and exist only for platform things (`ports-and-adapters R2`, `R3`).
 - Script integration stays one port returning a description. Don't build a plugin system (`ports-and-adapters R9`).
 - Port outcomes are closed types, switched over with no discard arm (`railway R2`).

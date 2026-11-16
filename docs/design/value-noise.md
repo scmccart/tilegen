@@ -2,7 +2,7 @@
 
 ## What it does
 
-Generates a grey image of smooth random variation by summing several octaves of value noise: fractal Brownian motion (fBm). It is a source stage, with no input buffer. Later techniques, such as thresholding the noise into terrain, will take its output.
+Generates a grey image of smooth random variation by summing several octaves of value noise: fractal Brownian motion (fBm). It is a source stage, with no input. The threshold reads its output and turns it into a two-terrain map (`threshold.md`, `stage-inputs.md`); the preview's built-in pipeline does exactly that.
 
 The image is built one octave at a time, coarsest first, and each octave is one step of the run. Frame k shows octaves 1 to k summed, so stepping through the frames shows detail being added. The last frame is the stage's output.
 
@@ -32,7 +32,7 @@ Each octave k, from 0 to octaves − 1, is one step.
    - The pixel becomes grey `(byte)Math.Round(v × 255, MidpointRounding.AwayFromZero)`, the same in red, green and blue, with alpha 255.
    - The step yields a `Frame` over the working buffer.
 
-A frame is a view, valid until the next step (`functional-core R4`). A caller that keeps a frame calls `ToBuffer()`. The run holds nothing that needs disposing, so it can be abandoned after any frame.
+A frame is a view, valid until the next step (`functional-core R4`). A caller that keeps a frame calls `ToImage()`, as the run does. The run holds nothing that needs disposing, so it can be abandoned after any frame.
 
 ## Parameters
 
@@ -115,7 +115,7 @@ A frame is a view, valid until the next step (`functional-core R4`). A caller th
   - a kept copy unaffected by later steps;
   - nothing drawn before the first frame, and each step drawing exactly its own lattice;
   - with cell size 1, each pixel equal to its lattice value.
-- `tests/Tilegen.Core.Tests/Techniques/ValueNoiseProperties.cs`: CsCheck properties over generated valid parameters up to 64 × 64 (determinism, one frame per octave, opaque grey), and properties of `Smoothstep` and `Lerp` over [0, 1]. The file says why there is no inputs-unchanged property: value noise has no input.
+- `tests/Tilegen.Core.Tests/Techniques/ValueNoiseProperties.cs`: CsCheck properties over generated valid parameters up to 64 × 64 (determinism, one frame per octave, opaque grey), and properties of `Smoothstep` and `Lerp` over [0, 1]. The file says why there is no inputs-unchanged property: value noise has no input. That property is in `ThresholdProperties.cs`, threshold being the first technique that reads another stage's output, and it checks that the threshold leaves its input, such as this stage's output, unchanged after every frame.
 - `tests/Tilegen.Core.Tests/Pipelines/GenerationTests.cs`: a validated noise stage gives the same frames through `Generation.Run` as through `ValueNoise.Run`.
 - **The golden,** in `tests/Tilegen.Core.Tests/Goldens/value-noise/`:
   - `basic.png`, the image the owner approved by eye (`testing R6`);

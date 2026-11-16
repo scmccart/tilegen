@@ -70,11 +70,26 @@ The type already makes a change impossible, so these guard against it being weak
 - `ThresholdProperties.The_input_is_unchanged_after_every_frame`: over generated images and levels, the input equals a `ToBuffer()` snapshot taken before the run, after every yielded frame (`testing R9`).
 - `ThresholdTests.The_input_is_unchanged_after_the_run`: the threshold spec's scenario.
 - `ImageTests`: a write to the buffer or frame after `ToImage()` doesn't change the image, a buffer from `ToBuffer()` is independent, and `Image` has no public constructor and no public way to write its pixels.
+- `GenerationRunScenarioTests.The_sources_entries_survive_the_reader`: in a run, a threshold leaves the timeline entries of the stage it reads unchanged (see In a run).
 - The build: RS0030 on the three banned types.
 
 ## In a run
 
-_Placeholder. The engine half of this mechanism is described with the engine's scenarios (task 4.2 of the `stage-inputs` change): how the run keeps each finished stage's last image in `StageOutputs`, and how `Generation.Run` picks a stage's inputs from them._
+The engine keeps every finished stage's output, and Core picks which of them a stage reads.
+
+- **`StageOutputs`** holds the last image of each stage that has finished, by `StageId`. It is immutable: `With(stage, image)` returns a new value. Its indexer throws `KeyNotFoundException` for a stage with no output. That is a bug, because validation only builds a stage whose sources come before it.
+- **The run keeps the outputs.** `GenerationRun` starts with `StageOutputs.Empty`. When a stage's enumerator ends, the run adds that stage's last timeline entry's `Image` to the outputs, then starts the next stage. The timeline already holds that image, so passing it on costs no further copy.
+- **Each stage starts with the outputs so far.** The run calls `Generation.Run(stage, outputs, random)` for every stage, whatever its case. The engine doesn't look at what a stage reads.
+- **Core picks the inputs.** `Generation.Run`'s switch has an arm per stage case, with no discard arm. The `Threshold` arm passes `outputs[threshold.Parameters.Source]` to `TerrainThreshold.Run`; the `Noise` arm reads nothing. A technique with several inputs looks up one output per slot in its own arm (`functional-core R2`).
+- **Lookups only.** `StageOutputs` is looked up by id and never enumerated, so hash order can't reach the pixels (`functional-core R8`).
+- **A stage that yields no frame throws.** Every technique yields at least one frame, so a source always has a last image. A stage that ends without one is a bug, and the run throws `InvalidOperationException` rather than passing on the previous stage's image. No test produces it: the stage set is closed, so there is no stand-in technique that yields nothing.
+- **Seeds don't change.** Each stage still gets `new Random(StageSeed.Derive(seed, stage.Id).Value)`. A stage's frames are therefore its technique run alone with that stage seed and, for each input, the last image of the stage it names (`timeline-and-playback.md`).
+
+The Engine scenarios in `tests/Tilegen.Engine.Tests/GenerationRunScenarioTests.cs` check this with a noise stage `a` followed by a threshold `t` that reads it. The stage set is closed, so no stand-in technique can record what it was given; what `t` was given is observed through its frame.
+
+- `A_stage_with_an_input_matches_its_technique_run_alone_on_that_input`: `t`'s frame equals `TerrainThreshold.Run` on `a`'s last entry, with `t`'s parameters and stage seed.
+- `A_threshold_reads_the_last_octave`: `t`'s frame matches the threshold of `a`'s third and last entry, and not that of the first or second.
+- `The_sources_entries_survive_the_reader`: `a`'s entries, snapshotted after the third advance and before `t`'s first step, are unchanged once the run completes.
 
 ## Decisions and limits
 
@@ -92,7 +107,11 @@ _Placeholder. The engine half of this mechanism is described with the engine's s
 - `src/Tilegen.Core/Pipelines/Pipeline.cs`: `Validate`, `ValidateThreshold` and `CheckInput`.
 - `src/Tilegen.Core/Imaging/Image.cs`, with `ToImage` in `PixelBuffer.cs` and `Frame.cs`.
 - `src/Tilegen.Core/BannedSymbols.txt`: the three banned escape hatches.
+- `src/Tilegen.Core/Pipelines/StageOutputs.cs`: the outputs of the finished stages.
+- `src/Tilegen.Core/Pipelines/Generation.cs`: `Generation.Run`, which picks each stage's inputs from the outputs.
+- `src/Tilegen.Engine/GenerationRun.cs`: keeping each finished stage's last image, and passing the outputs as each stage starts.
 - `src/Tilegen.Desktop/FindingText.cs`: the text for each input finding, and the name of each `Input`.
+- `src/Tilegen.Desktop/BuiltInPipeline.cs`: the preview's pipeline, a noise stage and a threshold that reads it, built with a `PipelineBuilder`.
 - `tests/Tilegen.Core.Tests/Pipelines/PipelineBuilderTests.cs`: handles at increasing positions with the ids given, `""` for a null id, `Build` in order and as a snapshot, and handle equality.
 - `tests/Tilegen.Core.Tests/Pipelines/PipelineValidationTests.cs`:
   - a stage reading an earlier stage through its handle;
@@ -103,4 +122,6 @@ _Placeholder. The engine half of this mechanism is described with the engine's s
   - a threshold reading a threshold.
 - `tests/Tilegen.Core.Tests/Pipelines/PipelineValidationProperties.cs`: generated descriptions built with the builder, including thresholds that read earlier stages. An in-range description validates with each threshold reading the stage its handle named; one parameter pushed out of range gives exactly that finding, even when the pushed stage is a threshold's source; and validating twice gives equal results.
 - `tests/Tilegen.Core.Tests/Pipelines/ClosedTypeTests.cs`: switches over every `StageDescription`, `Stage`, `Finding`, `Parameter` and `Input` case with no discard arm.
+- `tests/Tilegen.Core.Tests/Pipelines/StageOutputsTests.cs`: `With` leaves the original unchanged, and the indexer returns what was added.
 - `tests/Tilegen.Core.Tests/Imaging/ImageTests.cs` and `tests/Tilegen.Core.Tests/Techniques/ThresholdProperties.cs`: the checks above.
+- `tests/Tilegen.Engine.Tests/GenerationRunScenarioTests.cs`: the run scenarios above. `TestPipelines` builds their pipelines with a `PipelineBuilder` and `Pipeline.Validate`.

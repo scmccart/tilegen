@@ -70,18 +70,18 @@ Some tasks in groups 1 and 3 touch Engine or Desktop. Those edits are the mechan
 
 ## 4. Passing inputs in a run (Engine)
 
-- [ ] 4.1 Add one Engine test per scenario in `specs/generation-run/spec.md` to `GenerationRunScenarioTests.cs` (design D9). `TestPipelines` builds them through `PipelineBuilder` and `Pipeline.Validate`. The source's entries are snapshotted between advances, before the threshold's first step. What a stage was passed is observed through the threshold's frame: the stage set is closed, so no stand-in technique can record its inputs. The no-frame throw has no test, for the same reason (design D5). Verify that the tests pass.
-- [ ] 4.2 Fill in the engine half of `docs/design/stage-inputs.md`, and update `docs/design/timeline-and-playback.md` (entries hold an `Image`, the run keeps outputs, "run alone" now includes inputs, a stage with no frame throws). Recompute the figures that describe the built-in run for its 6 frames: "10 frames", "640 KiB", "2.5 seconds" and "2.75". Verify by reading each against 1.4 and 4.1 as built.
-- [ ] 4.3 Update the Enforcement sections of `docs/architecture/functional-core.md` and `testing.md`, and the README's "Enforcement status". The inputs-unchanged property is in place in `ThresholdProperties.cs`, and the Engine scenario covers the timeline. Fix any text this change makes stale in `illegal-states.md`'s Enforcement section and in `.claude/rules/*.md`. Verify by reading each against the code.
+- [x] 4.1 Add one Engine test per scenario in `specs/generation-run/spec.md` to `GenerationRunScenarioTests.cs` (design D9). `TestPipelines` builds them through `PipelineBuilder` and `Pipeline.Validate`. The source's entries are snapshotted between advances, before the threshold's first step. What a stage was passed is observed through the threshold's frame: the stage set is closed, so no stand-in technique can record its inputs. The no-frame throw has no test, for the same reason (design D5). Verify that the tests pass.
+- [x] 4.2 Fill in the engine half of `docs/design/stage-inputs.md`, and update `docs/design/timeline-and-playback.md` (entries hold an `Image`, the run keeps outputs, "run alone" now includes inputs, a stage with no frame throws). Recompute the figures that describe the built-in run for its 6 frames: "10 frames", "640 KiB", "2.5 seconds" and "2.75". Verify by reading each against 1.4 and 4.1 as built.
+- [x] 4.3 Update the Enforcement sections of `docs/architecture/functional-core.md` and `testing.md`, and the README's "Enforcement status". The inputs-unchanged property is in place in `ThresholdProperties.cs`, and the Engine scenario covers the timeline. Fix any text this change makes stale in `illegal-states.md`'s Enforcement section and in `.claude/rules/*.md`. Verify by reading each against the code.
 
 ## 5. The built-in pipeline (Desktop)
 
-- [ ] 5.1 Change `BuiltInPipeline` to use `PipelineBuilder` with the noise and threshold stages from design D7, and update its comment. Verify:
+- [x] 5.1 Change `BuiltInPipeline` to use `PipelineBuilder` with the noise and threshold stages from design D7, and update its comment. Verify:
   - launch with `TILEGEN_SCREENSHOT` set and `TILEGEN_SCREENSHOT_AT` past the run's end (about 2 s for 6 frames at 250 ms), and check that the screenshot shows a black-and-white map;
   - take a second screenshot mid-run, about 1 s in, showing noise;
   - send both PNGs to the owner.
-- [ ] 5.2 Check the invalid-description path by hand. Temporarily point the threshold's source at a handle from a second builder, and check by screenshot that the window lists an unknown-input finding as text. Revert. Verify that `git diff src/Tilegen.Desktop/BuiltInPipeline.cs` shows only 5.1's change.
-- [ ] 5.3 Update `docs/design/value-noise.md`: threshold now reads its output, and its "Where it lives" note points at threshold's inputs-unchanged property. Verify by reading it.
+- [x] 5.2 Check the invalid-description path by hand. Temporarily point the threshold's source at a handle from a second builder, and check by screenshot that the window lists an unknown-input finding as text. Revert. Verify that `git diff src/Tilegen.Desktop/BuiltInPipeline.cs` shows only 5.1's change.
+- [x] 5.3 Update `docs/design/value-noise.md`: threshold now reads its output, and its "Where it lives" note points at threshold's inputs-unchanged property. Verify by reading it.
 
 ## 6. Integration check
 

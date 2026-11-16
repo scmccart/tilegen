@@ -24,7 +24,7 @@ This is the plan for phase one, cut into OpenSpec changes that each fit one PR. 
 | # | Change | Depends on | Status |
 | --- | --- | --- | --- |
 | 1 | Stage inputs | none | done (`2026-11-16-stage-inputs`) |
-| 2 | Isometric tile geometry | none | planned |
+| 2 | Isometric tile geometry | none | in progress (openspec: isometric-tile-geometry) |
 | 3 | Wang-set model | none | planned |
 | 4 | Transition technique | 1, 2, 3 | planned |
 | 5 | PNG atlas export | 4 | planned |

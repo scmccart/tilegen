@@ -79,8 +79,8 @@ None. It is a plain binary threshold on the mean of the colour channels. Nothing
     - input `value-noise/basic.png`, the approved value-noise golden, 64 × 64;
     - level 128;
     - stage seed 20261115, which the provenance format requires and the threshold doesn't use;
-    - .NET 11.0, and `approvedIn` `stage-inputs`, the change in which the owner is to approve it.
-  - `basic.png` is **awaiting the owner's approval by eye** (`testing R6`) and is not in the repository yet. Until it is, the golden test fails with `Missing`.
+    - .NET 11.0, and `approvedIn` `stage-inputs`, the change in which the owner approved it.
+  - `basic.png`, 64 × 64, black where the noise is darker than the level and white elsewhere. The owner approved it by eye on 2026-11-16 (`testing R6`).
   - **The input is the stored value-noise golden, not a fresh run,** so a change to value noise doesn't move this golden. If the value-noise golden is ever re-recorded, this golden's input changes with it, and both go to the owner.
 - **The golden test** is `ThresholdGoldenTests.cs`. It reads the input's path and the level from the provenance, decodes the input PNG into an `Image`, runs the technique and compares the one frame.
   - The test project copies `Goldens/` to its output, and the test reads both directories from there.

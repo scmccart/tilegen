@@ -48,7 +48,7 @@ Some tasks in groups 1 and 3 touch Engine or Desktop. Those edits are the mechan
   - **inputs unchanged:** the input equals its pre-run `ToBuffer()` snapshot after every yielded frame.
 
   Update the comment in `ValueNoiseProperties.cs` that says no technique has an input yet. Verify that the properties pass.
-- [ ] 2.4 Add the threshold golden test, `ThresholdGoldenTests.cs`.
+- [x] 2.4 Add the threshold golden test, `ThresholdGoldenTests.cs`.
   - It decodes `Goldens/value-noise/basic.png` into an `Image`, reads its level from `Goldens/threshold/basic.golden.json`, runs the technique, and compares the frame with `Golden`.
   - Write the provenance described in design D9.
   - Run the test once. It reports `Missing` and writes `golden-results/threshold/basic.actual.png`.
@@ -85,7 +85,7 @@ Some tasks in groups 1 and 3 touch Engine or Desktop. Those edits are the mechan
 
 ## 6. Integration check
 
-- [ ] 6.1 Run `dotnet build`, `dotnet test -- --minimum-expected-tests 1` and `openspec validate stage-inputs --strict`. Check that each topic doc named in design.md's "Topic docs" section matches the code, and that `docs/roadmap.md` row 1 reads "in progress (openspec: stage-inputs)". Verify that all three commands pass.
+- [x] 6.1 Run `dotnet build`, `dotnet test -- --minimum-expected-tests 1` and `openspec validate stage-inputs --strict`. Check that each topic doc named in design.md's "Topic docs" section matches the code, and that `docs/roadmap.md` row 1 reads "in progress (openspec: stage-inputs)". Verify that all three commands pass.
 
 ## Workflow follow-up
 

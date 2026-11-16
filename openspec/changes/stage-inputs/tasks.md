@@ -19,7 +19,7 @@ Some tasks in groups 1 and 3 touch Engine or Desktop. Those edits are the mechan
   - `CopyTo` is row-major and throws on a short span;
   - `ToBuffer` gives an independent copy;
   - an out-of-range index throws.
-- [ ] 1.3 Ban the escape hatches (design D4).
+- [ ] 1.3 Ban the escape hatches (design D4). **Only if the owner has confirmed the three bans;** otherwise record the escape hatches as review-only in `functional-core.md`'s Enforcement section, and skip the rest of this task.
   - First confirm that `grep -rn "MemoryMarshal\|ImmutableCollectionsMarshal\|Unsafe\." src/Tilegen.Core` finds nothing.
   - Then add `T:System.Runtime.InteropServices.ImmutableCollectionsMarshal`, `T:System.Runtime.InteropServices.MemoryMarshal` and `T:System.Runtime.CompilerServices.Unsafe` to `src/Tilegen.Core/BannedSymbols.txt`, with messages citing `functional-core R4`.
   - Update the banned-list paragraph in the Enforcement section of `docs/architecture/functional-core.md`.
@@ -34,8 +34,9 @@ Some tasks in groups 1 and 3 touch Engine or Desktop. Those edits are the mechan
   Verify that every existing Engine scenario passes unchanged in what it asserts, and that a Core test shows `StageOutputs.With` leaves the original unchanged and the indexer returns what was added.
 - [ ] 1.5 Add `StageHandle` (internal constructor; `Index`, `Id`) and `PipelineBuilder` (`Add`, `Build`), with the comment `functional-core R11` asks for (design D1). Verify with Core tests:
   - `Add` returns handles at positions 0, 1 and 2, holding the ids given, with `""` for a null id;
-  - `Build` returns the stages in order, and a later `Add` doesn't change a description already built;
-  - the pipeline-validation scenario "A stage reads an earlier stage through its handle". Write it after 3.1 if it needs `ThresholdDescription`; until then, check the handle with noise stages.
+  - `Build` returns the stages in order, and a later `Add` doesn't change a description already built.
+
+  Task 3.3 covers the scenario in which a threshold reads a stage through its handle.
 
 ## 2. The threshold technique (Core)
 
@@ -58,19 +59,19 @@ Some tasks in groups 1 and 3 touch Engine or Desktop. Those edits are the mechan
 
 ## 3. Threshold stages and input validation (Core)
 
-- [ ] 3.1 Add `ThresholdDescription(string Id, StageHandle Source, int Level)`, the `Threshold(StageId Id, ThresholdParameters Parameters)` stage, `Parameter.Level`, and the `Threshold` arm in `Generation.Run`, which reads `outputs[parameters.Source]` (design D3, D5). Add the matching arm and text to Desktop's `FindingText.ParameterName`. Verify that a `GenerationTests` case gives the same frames through `Generation.Run` as through `TerrainThreshold.Run` on the same image.
-- [ ] 3.2 Add the `Input` enum and the `MissingInput`, `UnknownInput`, `SelfInput` and `LaterInput` findings. Implement `CheckInput` and `ValidateThreshold` (design D3):
+- [ ] 3.1 Add the `Threshold(StageId Id, ThresholdParameters Parameters)` stage and its arm in `Generation.Run`, which reads `outputs[parameters.Source]` (design D3, D5). Verify that a `GenerationTests` case, building the stage with `ThresholdParameters.Create`, gives the same frames through `Generation.Run` as through `TerrainThreshold.Run` on the same image.
+- [ ] 3.2 Add `ThresholdDescription(string Id, StageHandle Source, int Level)` together with its validation, because `Pipeline.Validate`'s switch has no discard arm and the build breaks until both exist. Add `Parameter.Level`, the `Input` enum and the `MissingInput`, `UnknownInput`, `SelfInput` and `LaterInput` findings. Implement `CheckInput` and `ValidateThreshold` (design D3):
   - checks in the order id, source, level;
   - a stage is built only when it added no finding and its source resolved.
 
-  Add Desktop's `FindingText` arms and `Input` names (design D8), so the exhaustive switch compiles. Verify that the closed-type test in `ClosedTypeTests.cs` switches over every `Finding` case with no discard arm.
+  Add Desktop's `FindingText` arms, the `Level` parameter name and the `Input` names (design D8), so the exhaustive switches compile. Verify that the closed-type test in `ClosedTypeTests.cs` switches over every `Finding` case with no discard arm.
 - [ ] 3.3 Write the validation tests in `PipelineValidationTests.cs`: one test per scenario in `specs/pipeline-validation/spec.md` and the two validation scenarios in `specs/threshold/spec.md`. Each new finding is produced and asserted as its case (`testing R15`). Later and self references use handles from a second builder (design D9). Extend `PipelineValidationProperties.cs` so that its generated descriptions include threshold stages whose sources are earlier stages, and check that its determinism property still holds. Verify that the tests pass.
 - [ ] 3.4 Create `docs/design/stage-inputs.md`. It covers the builder and handles, how a handle is resolved and in what order, why a source's findings aren't repeated, `Image` and the banned escape hatches, the inputs-unchanged checks, the limits (no kinds, no size checks, no cycles possible), and where it lives. Leave a headed placeholder for the engine half, which 4.2 fills. Verify by reading it against 1.2 to 3.3 as built.
 
 ## 4. Passing inputs in a run (Engine)
 
-- [ ] 4.1 Add one Engine test per scenario in `specs/generation-run/spec.md` to `GenerationRunScenarioTests.cs` (design D9). `TestPipelines` builds them through `PipelineBuilder` and `Pipeline.Validate`. The source's entries are snapshotted between advances, before the threshold's first step. Also add a test that `StageOutputs` passed to a later stage holds exactly the earlier stages' last images. Verify that the tests pass.
-- [ ] 4.2 Fill in the engine half of `docs/design/stage-inputs.md`, and update `docs/design/timeline-and-playback.md` (entries hold an `Image`, the run keeps outputs, "run alone" now includes inputs, a stage with no frame throws). Verify by reading each against 1.4 and 4.1 as built.
+- [ ] 4.1 Add one Engine test per scenario in `specs/generation-run/spec.md` to `GenerationRunScenarioTests.cs` (design D9). `TestPipelines` builds them through `PipelineBuilder` and `Pipeline.Validate`. The source's entries are snapshotted between advances, before the threshold's first step. What a stage was passed is observed through the threshold's frame: the stage set is closed, so no stand-in technique can record its inputs. The no-frame throw has no test, for the same reason (design D5). Verify that the tests pass.
+- [ ] 4.2 Fill in the engine half of `docs/design/stage-inputs.md`, and update `docs/design/timeline-and-playback.md` (entries hold an `Image`, the run keeps outputs, "run alone" now includes inputs, a stage with no frame throws). Recompute the figures that describe the built-in run for its 6 frames: "10 frames", "640 KiB", "2.5 seconds" and "2.75". Verify by reading each against 1.4 and 4.1 as built.
 - [ ] 4.3 Update the Enforcement sections of `docs/architecture/functional-core.md` and `testing.md`, and the README's "Enforcement status". The inputs-unchanged property is in place in `ThresholdProperties.cs`, and the Engine scenario covers the timeline. Fix any text this change makes stale in `illegal-states.md`'s Enforcement section and in `.claude/rules/*.md`. Verify by reading each against the code.
 
 ## 5. The built-in pipeline (Desktop)

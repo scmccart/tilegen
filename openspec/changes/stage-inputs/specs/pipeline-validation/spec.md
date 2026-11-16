@@ -12,7 +12,7 @@ A pipeline description SHALL be an ordered list of stage descriptions made only 
 ## ADDED Requirements
 
 ### Requirement: A builder hands out a handle for each stage added
-A description SHALL be built by adding stages in order to a pipeline builder. Adding a stage SHALL return a handle that names that stage by its position and the id it was added with. A handle SHALL only be obtainable by adding a stage, so a stage can name as its input only a stage added before it.
+A description SHALL be built by adding stages in order to a pipeline builder. Adding a stage SHALL return a handle that names that stage by its position and the id it was added with. A handle SHALL only be obtainable by adding a stage, so within one builder a stage can name as its input only a stage added before it. A handle used in another description is checked by validation.
 
 #### Scenario: A stage reads an earlier stage through its handle
 - **WHEN** a noise stage "height" is added to a builder, and then a threshold stage "terrain" is added with the handle that adding "height" returned

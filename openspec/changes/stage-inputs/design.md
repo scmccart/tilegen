@@ -123,7 +123,7 @@ public sealed record class LaterInput(StageRef Stage, Input Input, int SourceInd
 - **A source's own findings aren't reported again** (spec: "An input is not reported for its source's own findings"). The handle is matched against the id as written, not against a validated `StageId`, so a source with an invalid id, a duplicate id or a bad parameter still resolves. The reading stage then produces no validated stage, but it adds no finding either. The pipeline is invalid through the source's own findings. This follows the rule `Pipeline.Validate` already has: a stage is built only when it added no finding, and a validated pipeline exists only when there are no findings at all.
 - **No cycle finding.** A resolved input is always an earlier stage, so the reads form a DAG in description order.
 - **Not representable after validation:**
-  - a validated stage whose input names no stage, a later stage or itself (`Threshold` exists only when its source resolved to an earlier, valid stage);
+  - a `ValidatedPipeline` holding a stage whose input names no stage, a later stage or itself. Validation builds a `Threshold` only when its source resolved to an earlier, valid stage, and only validation builds a `ValidatedPipeline`. `ThresholdParameters.Create` is public for tests, so the guarantee belongs to the validated pipeline, not to the stage record;
   - a level outside 0 to 255 (`ThresholdLevel`).
 - **Order within a stage:** the id, then the parameters in declaration order. For threshold that is the source, then the level.
 - **Alternatives rejected:**
@@ -149,7 +149,7 @@ public sealed class Image
 
 - **Why a type of our own.** The owner asked for inputs to be unchangeable at compile time. A technique receives an `Image`, and `Image` has no setter, no writable span and no way back to a mutable array. Writing to an input then doesn't compile, rather than being something a review has to catch.
 - **The timeline keeps `Image`s.** `TimelineEntry(StageId Stage, int Step, Image Image)`, and the run keeps each yielded frame with `frame.ToImage()`, where it now calls `ToBuffer()`. A stage's input is its source's last entry's `Image`, so passing it costs no further copy. `Frame` stays as it is: a view, valid until the next step.
-- **Closing the escape hatches.** `ImmutableArray` can be turned back into an array through `ImmutableCollectionsMarshal`, `MemoryMarshal` or `Unsafe`. All three types join `src/Tilegen.Core/BannedSymbols.txt`, with messages citing `functional-core R4`. The task checks that Core uses none of them today, and that each entry gives RS0030.
+- **Closing the escape hatches.** `ImmutableArray` can be turned back into an array through `ImmutableCollectionsMarshal`, `MemoryMarshal` or `Unsafe`. **Proposed, pending the owner's confirmation:** all three types join `src/Tilegen.Core/BannedSymbols.txt`, with messages citing `functional-core R4`. They go beyond the one ban the owner heard about, so task 1.3 waits for a yes. Without them, the escape hatches stay with review, and the Enforcement section says so. The task checks that Core uses none of them today, and that each entry gives RS0030.
 - **Alternatives rejected:**
   - `IReadOnlyList<Rgba32>`: a cast can recover the array, and an interface crossing into a technique sits awkwardly with `functional-core R6`.
   - `ReadOnlyMemory<Rgba32>`: `MemoryMarshal.TryGetArray` returns the array.
@@ -174,7 +174,7 @@ public static IEnumerable<Frame> Run(Stage stage, StageOutputs outputs, Random r
 ```
 
 - **The engine decides nothing about wiring.** When a stage's enumerator ends, the run adds that stage's last timeline entry to its `StageOutputs`. Each stage starts with the outputs so far. Which output a stage reads is Core's choice, made in `Generation.Run`'s exhaustive switch (`functional-core R2`).
-- **Every stage yields at least one frame.** Noise yields one per octave, at least 1, and threshold yields 1. A stage that ends with no frame is a bug, and the run throws `InvalidOperationException`; it is not an outcome case.
+- **Every stage yields at least one frame.** Noise yields one per octave, at least 1, and threshold yields 1. A stage that ends with no frame is a bug, and the run throws `InvalidOperationException`; it is not an outcome case. No test produces it: the stage set is closed, so there is no stand-in technique that yields nothing, the same limit the enumerator's disposal has in `timeline-and-playback.md`.
 - **Lookups only.** `StageOutputs` is looked up by id and never enumerated, so hash order can't reach the pixels (`functional-core R8`). `StageId` compares ordinally.
 - **The random is unchanged.** Each stage still gets `new Random(StageSeed.Derive(seed, stage.Id))`. Threshold draws nothing from it.
 - **Alternatives rejected:**

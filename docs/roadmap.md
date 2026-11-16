@@ -22,7 +22,7 @@ This is the plan for phase one, cut into OpenSpec changes that each fit one PR. 
 
 | # | Change | Depends on | Status |
 | --- | --- | --- | --- |
-| 1 | Stage inputs | none | next |
+| 1 | Stage inputs | none | in progress (openspec: stage-inputs) |
 | 2 | Isometric tile geometry | none | planned |
 | 3 | Wang-set model | none | planned |
 | 4 | Transition technique | 1, 2, 3 | planned |

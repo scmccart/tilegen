@@ -34,6 +34,10 @@ public sealed class TilegenGame : Game
     private const float Padding = 12;
     private const float Spacing = 6;
 
+    // Apos.Gui draws a label's text this far in from each side of its box. It isn't a setting, so it
+    // is measured from a screenshot: wrapped text has to fit inside it.
+    private const float LabelInset = 10;
+
     private readonly GraphicsDeviceManager _graphics;
 
     // Everything LoadContent makes, the first point where the graphics device and the font stream
@@ -238,7 +242,7 @@ public sealed class TilegenGame : Game
         Playing => "playing",
     };
 
-    /// <summary>An invalid description starts no run: every finding is listed in place of the frame, one per line.</summary>
+    /// <summary>An invalid description starts no run: every finding is listed in place of the frame, each wrapped to the area's width.</summary>
     private static void PutFindings(ImmutableArray<Finding> findings, Rectangle area)
     {
         Dock.Put(area.Left, area.Top, area.Right, area.Bottom);
@@ -246,13 +250,49 @@ public sealed class TilegenGame : Game
         lines.Padding = Padding;
         lines.Spacing = Spacing;
 
-        Label.Put("The built-in pipeline description is not valid:", FontSize);
+        var width = area.Width - (2 * Padding) - (2 * LabelInset);
+        PutWrapped("The built-in pipeline description is not valid:", width);
         foreach (var finding in findings)
         {
-            Label.Put(FindingText.Describe(finding), FontSize);
+            PutWrapped(FindingText.Describe(finding), width);
         }
 
         Vertical.Pop();
+    }
+
+    /// <summary>
+    /// Puts text as labels broken at spaces so that each line fits the width, with the lines of one
+    /// text set close together. A word wider than the width gets a line of its own.
+    /// </summary>
+    private static void PutWrapped(string text, float width)
+    {
+        Vertical.Push();
+        foreach (var line in WrapLines(text, width))
+        {
+            Label.Put(line, FontSize);
+        }
+
+        Vertical.Pop();
+    }
+
+    private static IEnumerable<string> WrapLines(string text, float width)
+    {
+        var line = "";
+        foreach (var word in text.Split(' '))
+        {
+            var candidate = line.Length == 0 ? word : $"{line} {word}";
+            if (line.Length > 0 && GuiHelper.MeasureString(candidate, FontSize).X > width)
+            {
+                yield return line;
+                line = word;
+            }
+            else
+            {
+                line = candidate;
+            }
+        }
+
+        yield return line;
     }
 
     private static void DrawShown(Loaded loaded, Preview preview, Rectangle area)

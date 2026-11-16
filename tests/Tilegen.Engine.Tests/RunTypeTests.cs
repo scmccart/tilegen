@@ -48,11 +48,11 @@ public class RunTypeTests
     public void A_timeline_entry_counts_its_step_from_1()
     {
         var stage = StageId.Create("a");
-        var frame = new Frame(new PixelBuffer(1, 1));
+        var image = new PixelBuffer(1, 1).ToImage();
 
-        var first = new TimelineEntry(stage, 1, frame);
+        var first = new TimelineEntry(stage, 1, image);
 
         Assert.Equal(1, first.Step);
-        Assert.Throws<ArgumentOutOfRangeException>(() => new TimelineEntry(stage, 0, frame));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new TimelineEntry(stage, 0, image));
     }
 }

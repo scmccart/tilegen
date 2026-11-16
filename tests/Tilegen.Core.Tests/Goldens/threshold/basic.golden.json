@@ -1,0 +1,10 @@
+{
+  "technique": "threshold",
+  "parameters": {
+    "input": "value-noise/basic.png",
+    "level": 128
+  },
+  "stageSeed": 20261115,
+  "dotnet": "11.0",
+  "approvedIn": "stage-inputs"
+}

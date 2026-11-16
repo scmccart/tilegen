@@ -9,8 +9,9 @@ namespace Tilegen.Engine;
 /// Runs a validated pipeline with a run seed, one technique step per <see cref="Advance"/>, and
 /// keeps a copy of every frame on its <see cref="Timeline"/>. Stages run in the pipeline's order,
 /// and each is given its own <see cref="Random"/>, seeded from the stage seed Core derives
-/// (functional-core R3, R9). The caller decides when to advance and when to stop; the run does no
-/// work in between.
+/// (functional-core R3, R9), and the last image of every stage that finished before it. Which of
+/// those a stage reads is Core's choice (functional-core R2). The caller decides when to advance
+/// and when to stop; the run does no work in between.
 /// </summary>
 public sealed class GenerationRun
 {
@@ -21,6 +22,9 @@ public sealed class GenerationRun
     private int _stageIndex;
     private IEnumerator<Frame>? _frames;
     private int _step;
+
+    // The last image of every finished stage, passed to each stage as it starts.
+    private StageOutputs _outputs = StageOutputs.Empty;
 
     private GenerationRun(ImmutableArray<Stage> stages, RunSeed seed)
     {
@@ -74,9 +78,13 @@ public sealed class GenerationRun
     }
 
     /// <summary>
-    /// One step. A stage that has no frame left is finished in the same call, and the next stage
-    /// is started, so an advance adds a frame whenever any stage still has one.
+    /// One step. A stage that has no frame left is finished in the same call: its last image joins
+    /// the outputs, and the next stage is started, so an advance adds a frame whenever any stage
+    /// still has one.
     /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// A stage ended without yielding a frame. Every technique yields at least one, so this is a bug.
+    /// </exception>
     private RunState Step(Running running)
     {
         while (_stageIndex < _stages.Length)
@@ -85,18 +93,29 @@ public sealed class GenerationRun
 
             // The stage's Random is built when the stage starts, from the seed Core derives. Each
             // stage's stream is independent, so building it late changes nothing.
-            _frames ??= Generation.Run(stage, new Random(StageSeed.Derive(Seed, stage.Id).Value)).GetEnumerator();
+            _frames ??= Generation.Run(stage, _outputs, new Random(StageSeed.Derive(Seed, stage.Id).Value))
+                .GetEnumerator();
 
             if (_frames.MoveNext())
             {
-                // The yielded frame is a view valid only until the next step: keep a copy that
-                // nothing else holds (functional-core R4).
+                // The yielded frame is a view valid only until the next step: keep an immutable
+                // copy (functional-core R4).
                 _step++;
-                Timeline.Append(new TimelineEntry(stage.Id, _step, new Frame(_frames.Current.ToBuffer())));
+                Timeline.Append(new TimelineEntry(stage.Id, _step, _frames.Current.ToImage()));
                 return running;
             }
 
             ReleaseFrames();
+
+            // The stage's last entry is the timeline's last, checked first so a stage with no
+            // frame can't pass on the previous stage's image. The same image the timeline holds is
+            // kept, with no further copy.
+            if (_step == 0)
+            {
+                throw new InvalidOperationException($"Stage \"{stage.Id}\" ended without yielding a frame.");
+            }
+
+            _outputs = _outputs.With(stage.Id, Timeline[Timeline.Count - 1].Image);
             _stageIndex++;
             _step = 0;
         }

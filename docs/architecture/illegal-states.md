@@ -55,7 +55,7 @@ public readonly record struct PixelCoord(int X, int Y);
 - **R10.** Absence that means something MUST be a case, not `null` and not a sentinel such as `-1` or an empty string. `T?` is fine for a lookup that can miss; turn it into a case or an outcome straight away.
 - **R11.** Derived values MUST be computed, not stored: an atlas's pixel size comes from its grid and cell size.
 - **R12.** Every wrapper MUST carry an invariant or a meaning. A wrapper that only renames a type is noise.
-- **R13.** Validated types MUST be immutable. A mutable value validated at construction can be made invalid afterwards. The pixel buffer is the one mutable Core type (`functional-core R11`) and carries no validated invariant beyond its size.
+- **R13.** Validated types MUST be immutable. A mutable value validated at construction can be made invalid afterwards. The pixel buffer is the one mutable type that carries pixels, and carries no validated invariant beyond its size; the pipeline builder is mutable but holds no validated value (`functional-core R11`).
 - **R14.** Tiled's file shapes MUST exist only in the export adapter's codec. In memory the tileset is Core's typed model.
 
 ## Anti-patterns

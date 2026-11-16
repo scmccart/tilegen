@@ -12,6 +12,12 @@ public closed record class Stage(StageId Id);
 public sealed record class Noise(StageId Id, NoiseParameters Parameters) : Stage(Id);
 
 /// <summary>
+/// Reads an earlier stage's last image and turns it into a two-terrain map. In a
+/// <see cref="ValidatedPipeline"/> its source is always an earlier, valid stage.
+/// </summary>
+public sealed record class Threshold(StageId Id, ThresholdParameters Parameters) : Stage(Id);
+
+/// <summary>
 /// A pipeline the engine may run. Only validation builds one (illegal-states R3), so it has no
 /// public constructor.
 /// </summary>

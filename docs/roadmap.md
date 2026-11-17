@@ -18,13 +18,14 @@ This is the plan for phase one, cut into OpenSpec changes that each fit one PR. 
 | Pipeline spine | `2026-11-15-pipeline-spine` | Pixel buffers and frames, value noise, pipeline descriptions and validation, stage seeds, goldens |
 | Engine preview | `2026-11-15-engine-preview` | Stepwise runs onto a timeline, playback rules, the preview window with replay controls, paced live generation, the screenshot hook |
 | Stage inputs | `2026-11-16-stage-inputs` | Stage handles from a pipeline builder, input findings, immutable images, the threshold technique, runs that pass each stage its sources' last images |
+| Isometric tile geometry | `2026-11-17-isometric-tile-geometry` | 2:1 tile sizes whose width is a multiple of 4, a pixel-centre diamond mask, the isometric layout, the cut-tile technique, validation of each stage's output size and of a tile that doesn't fit its source |
 
 ## Planned
 
 | # | Change | Depends on | Status |
 | --- | --- | --- | --- |
 | 1 | Stage inputs | none | done (`2026-11-16-stage-inputs`) |
-| 2 | Isometric tile geometry | none | in progress (openspec: isometric-tile-geometry) |
+| 2 | Isometric tile geometry | none | done (`2026-11-17-isometric-tile-geometry`) |
 | 3 | Wang-set model | none | planned |
 | 4 | Transition technique | 1, 2, 3 | planned |
 | 5 | PNG atlas export | 4 | planned |

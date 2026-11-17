@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using CsCheck;
+using Tilegen.Core.Geometry;
 using Tilegen.Core.Imaging;
 using Tilegen.Core.Pipelines;
 using Tilegen.Core.Techniques;
@@ -11,9 +12,11 @@ namespace Tilegen.Core.Tests.Pipelines;
 /// Properties of <see cref="Pipeline.Validate"/> over generated descriptions. Validation allocates
 /// nothing per pixel, so the full parameter ranges are cheap to generate.
 /// <para>
-/// Descriptions are built with a <see cref="PipelineBuilder"/>, so a threshold stage reads an
+/// Descriptions are built with a <see cref="PipelineBuilder"/>, so a stage with an input reads an
 /// earlier stage through the handle that adding it returned. The first stage is always noise, and
-/// each later one is noise or a threshold reading any stage before it, threshold or not.
+/// each later one is noise, a threshold reading any stage before it, or a cut whose box fits inside
+/// the output of a stage before it. The generator plans each stage's output size itself, so that a
+/// cut can be made to fit, and validation must agree with it.
 /// </para>
 /// </summary>
 public class PipelineValidationProperties
@@ -22,6 +25,12 @@ public class PipelineValidationProperties
 
     /// <summary>Makes one stage, given the handles of the stages added before it.</summary>
     private delegate StageDescription StageAt(IReadOnlyList<StageHandle> earlier);
+
+    /// <summary>
+    /// One generated stage, and the width and height of the image it outputs: a noise stage's own
+    /// size, a threshold's source's size, or a cut's box.
+    /// </summary>
+    private sealed record Planned(StageAt Make, int Width, int Height);
 
     /// <summary>Picks the range's edges often, because uniform draws over 1 to 4096 rarely land on them.</summary>
     private static Gen<int> IntIn(int min, int max) =>
@@ -45,10 +54,15 @@ public class PipelineValidationProperties
         from persistence in InRangePersistence
         select new NoiseDescription(id, width, height, octaves, cellSize, persistence);
 
-    /// <summary>An in-range stage at <paramref name="index"/>: noise, or from index 1 a threshold reading an earlier stage.</summary>
-    private static Gen<StageAt> InRangeStage(int index)
+    /// <summary>
+    /// An in-range stage at <paramref name="index"/>, given the stages planned before it: noise, or
+    /// from index 1 a threshold reading an earlier stage or a cut whose box fits inside an earlier
+    /// stage's output. A cut is offered only when some earlier stage is at least 4 by 2, the size of
+    /// the smallest tile; a noise stage can be as small as 1 by 1.
+    /// </summary>
+    private static Gen<Planned> InRangeStage(int index, IReadOnlyList<Planned> earlier)
     {
-        var noise = InRangeNoise(index).Select(stage => (StageAt)(_ => stage));
+        var noise = InRangeNoise(index).Select(stage => new Planned(_ => stage, stage.Width, stage.Height));
         if (index == 0)
         {
             return noise;
@@ -58,14 +72,49 @@ public class PipelineValidationProperties
             from id in IdEndingIn(index)
             from source in Gen.Int[0, index - 1]
             from level in IntIn(ThresholdLevel.Min, ThresholdLevel.Max)
-            select (StageAt)(earlier => new ThresholdDescription(id, earlier[source], level));
-        return Gen.OneOf(noise, threshold);
+            select new Planned(
+                handles => new ThresholdDescription(id, handles[source], level),
+                earlier[source].Width,
+                earlier[source].Height);
+
+        var fitting = Enumerable.Range(0, index)
+            .Where(i => earlier[i].Width >= IsoTileSize.Min && earlier[i].Height >= IsoTileSize.Min / 2)
+            .ToArray();
+        if (fitting.Length == 0)
+        {
+            return Gen.OneOf(noise, threshold);
+        }
+
+        var cut =
+            from id in IdEndingIn(index)
+            from source in Gen.Int[0, fitting.Length - 1].Select(i => fitting[i])
+            from tileWidth in TileWidthFitting(earlier[source])
+            from left in IntIn(0, earlier[source].Width - tileWidth)
+            from top in IntIn(0, earlier[source].Height - (tileWidth / 2))
+            select new Planned(
+                handles => new CutTileDescription(id, handles[source], tileWidth, left, top),
+                tileWidth,
+                tileWidth / 2);
+        return Gen.OneOf(noise, threshold, cut);
     }
+
+    /// <summary>A multiple of 4 no wider than the source, whose half is no higher than the source.</summary>
+    private static Gen<int> TileWidthFitting(Planned source) =>
+        IntIn(1, Math.Min(source.Width, source.Height * 2) / IsoTileSize.WidthStep)
+            .Select(steps => steps * IsoTileSize.WidthStep);
+
+    /// <summary><paramref name="count"/> in-range stages, each planned knowing the sizes of the stages before it.</summary>
+    private static Gen<ImmutableList<Planned>> InRangeStages(int count) =>
+        count == 0
+            ? Gen.Const(ImmutableList<Planned>.Empty)
+            : from earlier in InRangeStages(count - 1)
+              from next in InRangeStage(count - 1, earlier)
+              select earlier.Add(next);
 
     private static readonly Gen<PipelineDescription> InRangeDescription =
         from count in Gen.Int[1, 4]
-        from stages in Gen.Select(InRangeStage(0), InRangeStage(1), InRangeStage(2), InRangeStage(3))
-        select Build(new[] { stages.Item1, stages.Item2, stages.Item3, stages.Item4 }.Take(count));
+        from planned in InRangeStages(count)
+        select Build(planned.Select(stage => stage.Make));
 
     /// <summary>Any value outside a whole-number range, near the edges and far from them.</summary>
     private static Gen<int> OutOfRangeInt(int min, int max) =>
@@ -94,6 +143,13 @@ public class PipelineValidationProperties
             OutOfRangePersistence.Select(p => Pushed(noise with { Persistence = p }, Parameter.Persistence, p))),
         ThresholdDescription threshold => OutOfRangeInt(ThresholdLevel.Min, ThresholdLevel.Max)
             .Select(v => Pushed(threshold with { Level = v }, Parameter.Level, v)),
+        CutTileDescription cut => Gen.OneOf(
+            OutOfRangeInt(IsoTileSize.Min, IsoTileSize.Max)
+                .Select(v => Pushed(cut with { TileWidth = v }, Parameter.TileWidth, v)),
+            OutOfRangeInt(CutTileParameters.MinPosition, CutTileParameters.MaxPosition)
+                .Select(v => Pushed(cut with { Left = v }, Parameter.Left, v)),
+            OutOfRangeInt(CutTileParameters.MinPosition, CutTileParameters.MaxPosition)
+                .Select(v => Pushed(cut with { Top = v }, Parameter.Top, v))),
     };
 
     private static (StageDescription Broken, Parameter Parameter, double Value) Pushed(
@@ -114,6 +170,7 @@ public class PipelineValidationProperties
                     {
                         NoiseDescription noise => () => AssertKept(noise, stage),
                         ThresholdDescription threshold => () => AssertKept(threshold, stage, valid.Pipeline),
+                        CutTileDescription cut => () => AssertKept(cut, stage, valid.Pipeline),
                     };
                     check();
                 }
@@ -123,9 +180,10 @@ public class PipelineValidationProperties
 
     /// <summary>
     /// The base stages satisfy the finest-octave rule, and pushing octaves or cell size out of
-    /// range switches that rule off. A pushed stage may be a threshold's source, which still
-    /// resolves and adds no finding, because a source's own findings are reported once, against
-    /// it. So the one finding is always the pushed parameter's.
+    /// range switches that rule off. Pushing a cut's value out of range switches off its
+    /// multiple-of-4 check and its fit check. A pushed stage may be another stage's source, which
+    /// still resolves and adds no finding, because a source's own findings are reported once,
+    /// against it. So the one finding is always the pushed parameter's.
     /// </summary>
     [Fact]
     public void One_parameter_pushed_out_of_range_gives_exactly_that_out_of_range_finding()
@@ -168,7 +226,17 @@ public class PipelineValidationProperties
             from source in Gen.Int[0, 3]
             from level in Gen.Int[-2, 258]
             select (StageAt)(earlier => new ThresholdDescription(id, earlier[source % earlier.Count], level));
-        var anyLaterStage = Gen.OneOf(anyNoise, anyThreshold);
+
+        // Small values as often as any, so that some cuts fit, some don't, and some widths aren't multiples of 4.
+        var anyCut =
+            from id in anyId
+            from source in Gen.Int[0, 3]
+            from tileWidth in Gen.OneOf<int>(Gen.Int[-2, 4100], Gen.Int[-1, 70])
+            from left in Gen.OneOf<int>(Gen.Int[-2, 4097], Gen.Int[-1, 40])
+            from top in Gen.OneOf<int>(Gen.Int[-2, 4097], Gen.Int[-1, 40])
+            select (StageAt)(earlier =>
+                new CutTileDescription(id, earlier[source % earlier.Count], tileWidth, left, top));
+        var anyLaterStage = Gen.OneOf(anyNoise, anyThreshold, anyCut);
         var anyDescription =
             from count in Gen.Int[0, 4]
             from later in anyLaterStage.Array[3]
@@ -222,6 +290,16 @@ public class PipelineValidationProperties
         Assert.Equal(expected.Level, threshold.Parameters.Level.Value);
     }
 
+    /// <summary>The cut reads the validated stage at the position its handle named, with the width and position given.</summary>
+    private static void AssertKept(CutTileDescription expected, Stage stage, ValidatedPipeline pipeline)
+    {
+        var cut = Assert.IsType<CutTile>(stage);
+        Assert.Equal(expected.Id, cut.Id.Value);
+        Assert.Equal(pipeline.Stages[expected.Source.Index].Id, cut.Parameters.Source);
+        Assert.Equal(expected.TileWidth, cut.Parameters.Size.Width);
+        Assert.Equal(new PixelPoint(expected.Left, expected.Top), cut.Parameters.Position);
+    }
+
     private static ParameterRange RangeOf(Parameter parameter) => parameter switch
     {
         Parameter.Width => new(PixelSize.Min, true, PixelSize.Max),
@@ -230,6 +308,9 @@ public class PipelineValidationProperties
         Parameter.CellSize => new(CellSize.Min, true, CellSize.Max),
         Parameter.Persistence => new(Persistence.ExclusiveMin, false, Persistence.Max),
         Parameter.Level => new(ThresholdLevel.Min, true, ThresholdLevel.Max),
+        Parameter.TileWidth => new(IsoTileSize.Min, true, IsoTileSize.Max),
+        Parameter.Left => new(CutTileParameters.MinPosition, true, CutTileParameters.MaxPosition),
+        Parameter.Top => new(CutTileParameters.MinPosition, true, CutTileParameters.MaxPosition),
     };
 
     /// <summary>

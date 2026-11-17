@@ -19,5 +19,14 @@ public sealed record class NoiseDescription(
 /// </summary>
 public sealed record class ThresholdDescription(string Id, StageHandle Source, int Level) : StageDescription(Id);
 
+/// <summary>
+/// A cut-tile stage as written: the stage it reads, the tile's width, and the position in the source
+/// of the top-left corner of the tile's box. As with a threshold, the source may be null or a handle
+/// that doesn't fit this description; validation reports both, and a box that doesn't fit inside the
+/// source's image.
+/// </summary>
+public sealed record class CutTileDescription(string Id, StageHandle Source, int TileWidth, int Left, int Top)
+    : StageDescription(Id);
+
 /// <summary>A pipeline as a definition wrote it. Nothing here has been checked.</summary>
 public sealed record class PipelineDescription(ImmutableArray<StageDescription> Stages);

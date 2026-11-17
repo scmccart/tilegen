@@ -76,7 +76,8 @@ public readonly record struct PixelCoord(int X, int Y);
   - CS8524 is silenced (owner decision, 2026-11-14). With it on, a switch expression that handles every named enum member still fails, and only a discard arm fixes it, which R5 forbids. With it off, a missing named member still fails with CS8509. An out-of-range enum value throws at run time, which is a bug.
 - **Constructors:** hidden constructors and factories make R3 and R8 structural.
 - **Structure:** R14 in part. Core and Engine may not depend on `Tilegen.Export` at all: the dependency rule forbids it, and the architecture tests in `tests/Tilegen.ArchitectureTests` check it. So the codec's types can't reach either. That Tiled's shapes aren't redefined elsewhere is review.
-- **Review alone:** R2 (until an analyzer or test checks description types), R4, R6, R7, R9 to R13, R14 in part, and R5 for switch statements.
+- **Types:** R7 in part. `Tilegen.Core.Geometry` has `TileCoordinate`, a tile's place in the isometric layout, and `PixelPoint`, a pixel position, as separate types, and `IsoTileSize`, a diamond's size, apart from `PixelSize`. Cell coordinates and a cell's size don't exist yet. That code uses these types rather than bare `int`s is review.
+- **Review alone:** R2 (until an analyzer or test checks description types), R4, R6, the rest of R7, R9 to R13, R14 in part, and R5 for switch statements.
 
 ## PR checklist
 

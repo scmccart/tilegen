@@ -6,15 +6,19 @@ The preview window is where the author watches a pipeline generate and replays i
 ## Requirements
 
 ### Requirement: The window runs its pipeline on launch
-On launch, the window SHALL validate its built-in pipeline description. If the description is valid, the window SHALL start a run with the starting seed. The run SHALL advance while the window is open, and the newest frame SHALL be shown as it arrives. The built-in description SHALL be a noise stage followed by a threshold stage that reads it.
+On launch, the window SHALL validate its built-in pipeline description. If the description is valid, the window SHALL start a run with the starting seed. The run SHALL advance while the window is open, and the newest frame SHALL be shown as it arrives. The built-in description SHALL be a noise stage, then a threshold stage that reads it, then a cut-tile stage that reads the threshold.
 
 #### Scenario: Launch shows generation live
 - **WHEN** the app is launched
-- **THEN** the window shows the frames of the first stage and then the second as they are generated, and the run is reported as completed at the end
+- **THEN** the window shows the frames of the first stage, then the second, then the third as they are generated, and the run is reported as completed at the end
 
 #### Scenario: Noise turns into a two-colour map
+- **WHEN** the app is launched and the run reaches the threshold's frame
+- **THEN** the frame shown is a black-and-white map whose white regions follow the bright regions of the noise frame before it
+
+#### Scenario: The run ends on a diamond tile
 - **WHEN** the app is launched and the run completes
-- **THEN** the last frame shown is a black-and-white map whose white regions follow the bright regions of the noise frame before it
+- **THEN** the last frame shown is a single 2:1 diamond cut from the black-and-white map, with transparent pixels outside the diamond, scaled up so that its stepped edges are visible
 
 ### Requirement: Live generation keeps the replay's pace
 The run SHALL advance one step for each whole frame interval of elapsed time, the same interval playback uses. Leftover time SHALL carry over to the next update, so generating and replaying move at the same rate, whatever the update rate.
@@ -43,7 +47,7 @@ Alongside the shown frame, the window SHALL show:
 - the playback mode.
 
 #### Scenario: Labels follow the shown frame
-- **WHEN** the user steps back across the boundary between the two stages
+- **WHEN** the user steps back across the boundary between two stages, such as from the tile to the black-and-white map
 - **THEN** the stage id, step and position labels change to describe the frame now shown
 
 ### Requirement: Frames are shown sharp and fitted

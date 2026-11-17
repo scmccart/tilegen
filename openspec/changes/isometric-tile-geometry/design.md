@@ -103,7 +103,7 @@ public readonly record struct RowSpan(int First, int Width);
 ```
 
 - **The rule.** A pixel (x, y) has its centre at (x + ½, y + ½). The diamond's corners are the midpoints of the box's sides, so the centre is inside when |x + ½ − W/2| / (W/2) + |y + ½ − H/2| / (H/2) ≤ 1. Multiplied out with W = 2H, that is |2x + 1 − W| + 2·|2y + 1 − H| ≤ W, in whole numbers.
-- **No ties.** |2x + 1 − W| is odd, and 2·|2y + 1 − H| is twice an odd number, so their sum is odd. W is a multiple of 4, so the sum never equals W. Every pixel centre is strictly inside or strictly outside. The same holds for every tile in the layout, because the layout offsets are whole pixels. So the pixel-centre rule gives an exact partition of the plane with no tie-break.
+- **No ties.** |2x + 1 − W| is odd, and 2·|2y + 1 − H| is twice an odd number, so their sum is odd. W is even, so the sum never equals W. Any even W would do; the multiple of 4 is what keeps H even, and with it the two middle rows, the whole-pixel offsets and the exact count (D1). Every pixel centre is strictly inside or strictly outside. The same holds for every tile in the layout, because the layout offsets are whole pixels. So the pixel-centre rule gives an exact partition of the plane with no tie-break.
 - **What it looks like:**
   - rows of 2, 6, 10, … pixels, centred, stepping 2 pixels a row on each side: the usual 2:1 pixel line;
   - the two middle rows are W − 2 wide, so columns 0 and W − 1 are empty. The side neighbours' tips fill them;
@@ -130,7 +130,7 @@ public static class IsoLayout
 }
 ```
 
-- **The layout** is the diamond layout of Tiled's "isometric" orientation: i runs down and to the right, j runs down and to the left. The topic doc cites Tiled's documentation for it. Nothing comes from Tiled's source (CLAUDE.md).
+- **The layout** is meant to match Tiled's "isometric" orientation: i runs down and to the right, j runs down and to the left. Tiled's documentation, read while implementing, says isometric tiles are drawn as diamonds but gives no ratio, axis directions or image placement, so the formula is tilegen's own and the topic doc says so. The match is checked by hand when the tileset is written (Risks). Nothing comes from Tiled's source (CLAUDE.md).
 - **In Core now,** because the "no gap, no overlap" property is about how tiles meet. A layout written only in a test would prove a formula the product doesn't have. Change 4's edge-matching property needs the same neighbour relation.
 - **Two point types** (`illegal-states R7`). A tile coordinate and a pixel position are both pairs of `int`s and must not be interchangeable. `PixelPoint` has no range: layout origins are negative for i < j, and the cut's position range belongs to `CutTileParameters` (D4).
 - **Checked arithmetic.** `Origin` uses `checked`, so a coordinate far enough out to overflow throws rather than wrapping.
@@ -308,7 +308,7 @@ Its switches have no discard arm, so the build fails until every arm exists.
   - the 2:1 diamond, and why the width is a multiple of 4 (D1);
   - the pixel-centre rule in whole numbers, why there are no ties, the row widths, W − 2, the 8 × 4 picture and the W·H/2 count (D2);
   - the layout, with tile and pixel coordinates (D3);
-  - sources: Tiled's documentation for the isometric orientation, checked in its text, and any article on 2:1 pixel-art tiles that is cited, also checked in its text. No code was copied;
+  - sources: Tiled's documentation for the isometric orientation, checked in its text, for what it says (tiles are drawn as diamonds) and what it doesn't (the ratio, axes and placement, which are tilegen's own), and any article on 2:1 pixel-art tiles that is cited, also checked in its text. No code was copied;
   - decisions and limits: the rejected full-width and half-open rules, no other ratios, no height;
   - where it lives, and the properties and examples that prove it.
 - **Creates `docs/design/cut-tile.md`:**

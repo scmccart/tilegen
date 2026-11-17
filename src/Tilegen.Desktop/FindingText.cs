@@ -29,6 +29,15 @@ internal static class FindingText
             Invariant,
             $"{StageName(finest.Stage)}: cell size is {finest.CellSize}, but {finest.Octaves} octaves need at least "
                 + $"{finest.SmallestValidCellSize}."),
+        NotMultipleOf notMultiple => string.Create(
+            Invariant,
+            $"{StageName(notMultiple.Stage)}: {ParameterName(notMultiple.Parameter)} is {notMultiple.Value}, "
+                + $"which is not a multiple of {notMultiple.Divisor}."),
+        TileOutsideSource outside => string.Create(
+            Invariant,
+            $"{StageName(outside.Stage)}: the {outside.TileWidth} × {outside.TileHeight} tile at "
+                + $"({outside.Left}, {outside.Top}) doesn't fit inside its {outside.SourceWidth} × "
+                + $"{outside.SourceHeight} source."),
         MissingInput missing => string.Create(
             Invariant,
             $"{StageName(missing.Stage)}: {InputName(missing.Input)} names no stage."),
@@ -58,6 +67,9 @@ internal static class FindingText
         Parameter.CellSize => "cell size",
         Parameter.Persistence => "persistence",
         Parameter.Level => "level",
+        Parameter.TileWidth => "tile width",
+        Parameter.Left => "left",
+        Parameter.Top => "top",
     };
 
     private static string InputName(Input input) => input switch

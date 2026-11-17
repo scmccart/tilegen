@@ -1,3 +1,4 @@
+using Tilegen.Core.Geometry;
 using Tilegen.Core.Imaging;
 using Tilegen.Core.Pipelines;
 using Tilegen.Core.Techniques;
@@ -41,6 +42,28 @@ public class GenerationTests
         var expected = Pixels.Snapshots(TerrainThreshold.Run(height, parameters, new Random(Seed)));
         var fromOther = Pixels.Snapshots(TerrainThreshold.Run(other, parameters, new Random(Seed)));
         var actual = Pixels.Snapshots(Generation.Run(threshold, outputs, new Random(Seed)));
+
+        Assert.NotNull(Pixels.Difference(Assert.Single(fromOther), Assert.Single(expected)));
+        Assert.Null(Pixels.Difference(Assert.Single(expected), Assert.Single(actual)));
+    }
+
+    /// <summary>
+    /// As for the threshold, the outputs hold a second image under another id, which cuts
+    /// differently, so reading the wrong output fails the comparison. The 16 by 8 box at (4, 6) lies
+    /// inside both 32 by 24 images.
+    /// </summary>
+    [Fact]
+    public void A_cut_tile_stage_runs_as_the_diamond_cut_on_its_sources_output()
+    {
+        var height = NoiseImage(seed: 1);
+        var other = NoiseImage(seed: 2);
+        var parameters = CutTileParameters.Create(StageId.Create("height"), IsoTileSize.Create(16), new PixelPoint(4, 6));
+        var cut = new CutTile(StageId.Create("tile"), parameters);
+        var outputs = StageOutputs.Empty.With(StageId.Create("other"), other).With(StageId.Create("height"), height);
+
+        var expected = Pixels.Snapshots(DiamondCut.Run(height, parameters, new Random(Seed)));
+        var fromOther = Pixels.Snapshots(DiamondCut.Run(other, parameters, new Random(Seed)));
+        var actual = Pixels.Snapshots(Generation.Run(cut, outputs, new Random(Seed)));
 
         Assert.NotNull(Pixels.Difference(Assert.Single(fromOther), Assert.Single(expected)));
         Assert.Null(Pixels.Difference(Assert.Single(expected), Assert.Single(actual)));

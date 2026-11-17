@@ -18,6 +18,12 @@ public sealed record class Noise(StageId Id, NoiseParameters Parameters) : Stage
 public sealed record class Threshold(StageId Id, ThresholdParameters Parameters) : Stage(Id);
 
 /// <summary>
+/// Cuts one isometric tile out of an earlier stage's last image. In a <see cref="ValidatedPipeline"/>
+/// its source is always an earlier, valid stage, and the tile's box lies inside the source's image.
+/// </summary>
+public sealed record class CutTile(StageId Id, CutTileParameters Parameters) : Stage(Id);
+
+/// <summary>
 /// A pipeline the engine may run. Only validation builds one (illegal-states R3), so it has no
 /// public constructor.
 /// </summary>

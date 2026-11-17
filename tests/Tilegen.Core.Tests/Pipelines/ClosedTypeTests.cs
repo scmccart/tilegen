@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Tilegen.Core.Geometry;
 using Tilegen.Core.Imaging;
 using Tilegen.Core.Pipelines;
 using Tilegen.Core.Techniques;
@@ -21,12 +22,14 @@ public class ClosedTypeTests
     {
         NoiseDescription => nameof(NoiseDescription),
         ThresholdDescription => nameof(ThresholdDescription),
+        CutTileDescription => nameof(CutTileDescription),
     };
 
     private static string Name(Stage stage) => stage switch
     {
         Noise => nameof(Noise),
         Threshold => nameof(Threshold),
+        CutTile => nameof(CutTile),
     };
 
     private static string Name(ValidationOutcome outcome) => outcome switch
@@ -46,6 +49,8 @@ public class ClosedTypeTests
         UnknownInput => nameof(UnknownInput),
         SelfInput => nameof(SelfInput),
         LaterInput => nameof(LaterInput),
+        NotMultipleOf => nameof(NotMultipleOf),
+        TileOutsideSource => nameof(TileOutsideSource),
     };
 
     private static string Name(Parameter parameter) => parameter switch
@@ -56,6 +61,9 @@ public class ClosedTypeTests
         Parameter.CellSize => "c",
         Parameter.Persistence => "p",
         Parameter.Level => "l",
+        Parameter.TileWidth => "tw",
+        Parameter.Left => "x",
+        Parameter.Top => "y",
     };
 
     private static string Name(Input input) => input switch
@@ -74,6 +82,7 @@ public class ClosedTypeTests
 
         Assert.Equal("NoiseDescription", Name(noise));
         Assert.Equal("ThresholdDescription", Name(new ThresholdDescription("b", source, 128)));
+        Assert.Equal("CutTileDescription", Name(new CutTileDescription("c", source, 8, 0, 0)));
     }
 
     [Fact]
@@ -84,6 +93,11 @@ public class ClosedTypeTests
             "Threshold",
             Name(new Threshold(
                 StageId.Create("b"), ThresholdParameters.Create(StageId.Create("a"), ThresholdLevel.Create(128)))));
+        Assert.Equal(
+            "CutTile",
+            Name(new CutTile(
+                StageId.Create("c"),
+                CutTileParameters.Create(StageId.Create("a"), IsoTileSize.Create(8), new PixelPoint(0, 0)))));
     }
 
     [Fact]
@@ -110,12 +124,14 @@ public class ClosedTypeTests
         Assert.Equal("UnknownInput", Name(new UnknownInput(Ref, Input.Source, 3, "other")));
         Assert.Equal("SelfInput", Name(new SelfInput(Ref, Input.Source)));
         Assert.Equal("LaterInput", Name(new LaterInput(Ref, Input.Source, 1)));
+        Assert.Equal("NotMultipleOf", Name(new NotMultipleOf(Ref, Parameter.TileWidth, 30, 4)));
+        Assert.Equal("TileOutsideSource", Name(new TileOutsideSource(Ref, 0, 40, 64, 32, 64, 64)));
     }
 
     [Fact]
     public void A_switch_over_parameters_needs_no_discard_arm()
     {
-        Assert.Equal(["w", "h", "o", "c", "p", "l"], Enum.GetValues<Parameter>().Select(Name));
+        Assert.Equal(["w", "h", "o", "c", "p", "l", "tw", "x", "y"], Enum.GetValues<Parameter>().Select(Name));
     }
 
     [Fact]

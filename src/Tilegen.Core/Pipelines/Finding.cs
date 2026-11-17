@@ -15,6 +15,9 @@ public enum Parameter
     CellSize,
     Persistence,
     Level,
+    TileWidth,
+    Left,
+    Top,
 }
 
 /// <summary>
@@ -44,6 +47,20 @@ public sealed record class OutOfRange(StageRef Stage, Parameter Parameter, doubl
 
 public sealed record class FinestOctaveBelowOnePixel(
     StageRef Stage, int CellSize, int Octaves, int SmallestValidCellSize) : Finding;
+
+/// <summary>
+/// The value is in range but isn't a multiple of <paramref name="Divisor"/>. A value out of range is
+/// reported as <see cref="OutOfRange"/> only, never as this too.
+/// </summary>
+public sealed record class NotMultipleOf(StageRef Stage, Parameter Parameter, int Value, int Divisor) : Finding;
+
+/// <summary>
+/// The tile's box, at (<paramref name="Left"/>, <paramref name="Top"/>) and
+/// <paramref name="TileWidth"/> × <paramref name="TileHeight"/>, doesn't lie inside its source's
+/// <paramref name="SourceWidth"/> × <paramref name="SourceHeight"/> image.
+/// </summary>
+public sealed record class TileOutsideSource(
+    StageRef Stage, int Left, int Top, int TileWidth, int TileHeight, int SourceWidth, int SourceHeight) : Finding;
 
 /// <summary>The input names no stage at all: its handle is null.</summary>
 public sealed record class MissingInput(StageRef Stage, Input Input) : Finding;

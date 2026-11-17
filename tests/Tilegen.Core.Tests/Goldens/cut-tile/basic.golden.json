@@ -1,0 +1,12 @@
+{
+  "technique": "cut-tile",
+  "parameters": {
+    "input": "value-noise/basic.png",
+    "tileWidth": 64,
+    "left": 0,
+    "top": 16
+  },
+  "stageSeed": 20261116,
+  "dotnet": "11.0",
+  "approvedIn": "isometric-tile-geometry"
+}

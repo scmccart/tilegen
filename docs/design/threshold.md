@@ -8,6 +8,8 @@ It is the first technique that reads another stage's output. Its source is a sta
 
 It runs as a `Threshold` stage through `Generation.Run`, which looks up the source's last image in the run's `StageOutputs`. It can also be run directly, through `TerrainThreshold.Run(Image, ThresholdParameters, Random)`.
 
+In the built-in pipeline it reads the noise stage, and the cut-tile stage reads its output, cutting a tile from the middle band of the map (`cut-tile.md`).
+
 ## How it works
 
 `TerrainThreshold.Run` is an iterator. Calling it checks its arguments and does nothing else: nothing is allocated or read until the first frame is requested. Its one step does four things:

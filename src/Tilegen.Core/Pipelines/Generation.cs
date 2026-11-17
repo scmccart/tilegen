@@ -25,6 +25,7 @@ public static class Generation
         {
             Noise noise => ValueNoise.Run(noise.Parameters, random),
             Threshold threshold => TerrainThreshold.Run(outputs[threshold.Parameters.Source], threshold.Parameters, random),
+            CutTile cut => DiamondCut.Run(outputs[cut.Parameters.Source], cut.Parameters, random),
         };
     }
 }
